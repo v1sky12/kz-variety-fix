@@ -7,6 +7,8 @@
 - [RBXL](https://github.com/v1sky12/kz-variety-fix/raw/upload/kz-variety-fix-updated/kz_variety_fix.rbxl)
 - [ZIP с RBXL](https://github.com/v1sky12/kz-variety-fix/raw/upload/kz-variety-fix-updated/kz_variety_fix_updated.zip)
 
+В обновлённом файле исправлена ошибка длины `Source` в двух серверных скриптах. Из-за неё Roblox Studio читал следующий скрипт со смещением и показывал `string length exceeds remaining data`.
+
 ## Что включено
 
 - один активный CKZ мотор с фиксированным шагом 128 Hz;
@@ -29,3 +31,5 @@ python3 install_kz_variety_fix.py rollback ./kz_variety_fix.rbxl.backup-YYYYMMDD
 ```
 
 Автоматические проверки формул и surf проходят. Проверка на реальной рампе, лестнице и в Roblox Studio требует запуска place с двумя игроками.
+
+Для проверки контейнера из исходников используется `rbxl_container.py`; он проверяет все 428 Source-полей и длины строк до открытия place.
