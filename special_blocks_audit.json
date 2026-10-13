@@ -1,0 +1,30 @@
+{
+  "map": "KZ_Variety_CS2_ROBLOX_V17",
+  "trigger_multiple_total": 199,
+  "types": {
+    "0": 147,
+    "1": 2,
+    "4": 8,
+    "5": 1,
+    "6": 1,
+    "10": 12,
+    "11": 8,
+    "12": 9,
+    "14": 11
+  },
+  "implementation": {
+    "0": "generic source outputs/cooldowns",
+    "1": "modifier (gravity/jump/slide/checkpoint/teleport flags)",
+    "2": "checkpoint reset",
+    "3": "bhop state reset",
+    "4": "anti-bhop",
+    "5": "start zone",
+    "6": "end zone",
+    "9": "stage zone",
+    "10": "delayed teleport",
+    "11": "multi-bhop",
+    "12": "single-bhop",
+    "13": "sequential-bhop",
+    "14": "push + modifiers"
+  }
+}
