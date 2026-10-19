@@ -1,0 +1,32 @@
+{
+  "sha256": "b827b0d8d3b9fa29f7546f01ad5b59d03729bc76dd729b01dcdf539f3ed94b0b",
+  "bytes": 2830800,
+  "chunks": 1869,
+  "classes": 92,
+  "instances": 135676,
+  "string_properties": 370,
+  "scripts": 428,
+  "build": "2026-10-19",
+  "baseline_sha256": "14b2320e37adcb127640e2f79803e8a0a9dcf76652c07dc1cc05636b2d80f3dd",
+  "zip_sha256": "c220aae05b09b89d13cd5959acd15bba6eb6f7d5e903d5e7406d5beea5629e8a",
+  "luau_commit": "9d7748a4f324213a18cb8283fa2a77c330225fa0",
+  "compiled_scripts": 428,
+  "test_results": {
+    "physics_scenarios": 41,
+    "client_scenarios": 8,
+    "server_scenarios": 17,
+    "container_and_installer": 12,
+    "failed": 0
+  },
+  "changed_sources": [
+    "StarterPlayer/StarterPlayerScripts/KZClassicControls",
+    "StarterPlayer/StarterPlayerScripts/KZClassicMovement",
+    "ReplicatedStorage/KZClassic/KZMapData",
+    "ReplicatedStorage/KZClassic/KZBrushCollision",
+    "ReplicatedStorage/KZClassic/KZBrushMotor",
+    "ServerScriptService/KZClassicGameplay"
+  ],
+  "studio_run": false,
+  "real_two_client_test": false,
+  "geometry_and_backup_sources_preserved": true
+}

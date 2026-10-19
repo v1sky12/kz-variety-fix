@@ -1,0 +1,21 @@
+name: Validate place and movement
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - name: Build pinned Luau tools
+        run: |
+          git init /tmp/luau
+          git -C /tmp/luau remote add origin https://github.com/luau-lang/luau.git
+          git -C /tmp/luau fetch --depth 1 origin 9d7748a4f324213a18cb8283fa2a77c330225fa0
+          git -C /tmp/luau checkout --detach FETCH_HEAD
+          make -C /tmp/luau config=release luau luau-compile -j2
+      - run: python -B -m unittest discover -s tests -p 'test_*.py' -v
+      - run: python -B run_luau_tests.py --luau /tmp/luau/luau
+      - run: python -B build_place.py --check --luau-compile /tmp/luau/luau-compile

@@ -1,0 +1,86 @@
+{
+  "KZClassicControls.luau": {
+    "id": 16972,
+    "path": "StarterPlayer/StarterPlayerScripts/KZClassicControls"
+  },
+  "KZClassicHUD.luau": {
+    "id": 16973,
+    "path": "StarterPlayer/StarterPlayerScripts/KZClassicHUD"
+  },
+  "KZClassicCrouchPose.luau": {
+    "id": 16974,
+    "path": "StarterPlayer/StarterPlayerScripts/KZClassicCrouchPose"
+  },
+  "KZClassicChat.luau": {
+    "id": 16975,
+    "path": "StarterPlayer/StarterPlayerScripts/KZClassicChat"
+  },
+  "KZClassicMovement.luau": {
+    "id": 16977,
+    "path": "StarterPlayer/StarterPlayerScripts/KZClassicMovement"
+  },
+  "KZClassicCore.luau": {
+    "id": 17019,
+    "path": "ReplicatedStorage/KZClassic/KZClassicCore"
+  },
+  "KZSurf.luau": {
+    "id": 17020,
+    "path": "ReplicatedStorage/KZClassic/KZSurf"
+  },
+  "KZBhop.luau": {
+    "id": 17021,
+    "path": "ReplicatedStorage/KZClassic/KZBhop"
+  },
+  "KZPracticeMap.luau": {
+    "id": 17022,
+    "path": "ReplicatedStorage/KZClassic/KZPracticeMap"
+  },
+  "KZMapData.luau": {
+    "id": 17023,
+    "path": "ReplicatedStorage/KZClassic/KZMapData"
+  },
+  "KZStuckProbe.luau": {
+    "id": 17024,
+    "path": "ReplicatedStorage/KZClassic/KZStuckProbe"
+  },
+  "KZLadderMap.luau": {
+    "id": 17025,
+    "path": "ReplicatedStorage/KZClassic/KZLadderMap"
+  },
+  "KZEnvironmentMap.luau": {
+    "id": 17026,
+    "path": "ReplicatedStorage/KZClassic/KZEnvironmentMap"
+  },
+  "KZMapRepairData.luau": {
+    "id": 17027,
+    "path": "ReplicatedStorage/KZClassic/KZMapRepairData"
+  },
+  "KZLadderEdge.luau": {
+    "id": 17028,
+    "path": "ReplicatedStorage/KZClassic/KZLadderEdge"
+  },
+  "KZLadderAudit.luau": {
+    "id": 17029,
+    "path": "ReplicatedStorage/KZClassic/KZLadderAudit"
+  },
+  "KZCollisionRecovery.luau": {
+    "id": 17030,
+    "path": "ReplicatedStorage/KZClassic/KZCollisionRecovery"
+  },
+  "KZVerify.luau": {
+    "id": 17031,
+    "path": "ReplicatedStorage/KZClassic/KZVerify"
+  },
+  "KZBrushCollision.luau": {
+    "id": 17033,
+    "path": "ReplicatedStorage/KZClassic/KZBrushCollision"
+  },
+  "KZBrushMotor.luau": {
+    "id": 17034,
+    "path": "ReplicatedStorage/KZClassic/KZBrushMotor"
+  },
+  "KZClassicGameplay.luau": {
+    "id": 17038,
+    "path": "ServerScriptService/KZClassicGameplay"
+  }
+}

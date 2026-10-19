@@ -1,30 +1,1594 @@
 {
-  "map": "KZ_Variety_CS2_ROBLOX_V17",
-  "trigger_multiple_total": 199,
-  "types": {
-    "0": 147,
-    "1": 2,
-    "4": 8,
-    "5": 1,
-    "6": 1,
-    "10": 12,
-    "11": 8,
-    "12": 9,
-    "14": 11
+  "entities": 718,
+  "raw_ladder_faces": 94,
+  "counts": {
+    "anti_bhop": 8,
+    "delayed_teleport": 12,
+    "finish": 1,
+    "modifier": 2,
+    "multibhop": 8,
+    "push": 11,
+    "sequential_bhop": 0,
+    "single_bhop": 9,
+    "start": 1
   },
-  "implementation": {
-    "0": "generic source outputs/cooldowns",
-    "1": "modifier (gravity/jump/slide/checkpoint/teleport flags)",
-    "2": "checkpoint reset",
-    "3": "bhop state reset",
-    "4": "anti-bhop",
-    "5": "start zone",
-    "6": "end zone",
-    "9": "stage zone",
-    "10": "delayed teleport",
-    "11": "multi-bhop",
-    "12": "single-bhop",
-    "13": "sequential-bhop",
-    "14": "push + modifiers"
-  }
+  "studio_status": "Not run in Roblox Studio; per-block map playtest remains required.",
+  "blocks": [
+    {
+      "id": "f1c229b4-46f9-4883-83de-925282f4ac49",
+      "type": 11,
+      "name": "multibhop",
+      "bounds_cs_units": [
+        [
+          3712.0,
+          -3856.0,
+          -400.0
+        ],
+        [
+          3800.0,
+          -3768.0,
+          -398.0
+        ]
+      ],
+      "destination": "ch16",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "d263703e-bdad-4262-8f18-39b89711f740",
+      "type": 11,
+      "name": "multibhop",
+      "bounds_cs_units": [
+        [
+          3568.0,
+          -1904.0,
+          -188.91015625
+        ],
+        [
+          3656.0,
+          -1816.0,
+          -186.91000366210938
+        ]
+      ],
+      "destination": "ch8",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "1c3a1891-fcf2-4d0b-ad95-7bf41c225e05",
+      "type": 11,
+      "name": "multibhop",
+      "bounds_cs_units": [
+        [
+          3720.0,
+          -3152.0,
+          -24.0
+        ],
+        [
+          3808.0,
+          -3056.0,
+          -22.0
+        ]
+      ],
+      "destination": "ch10",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "fadc0971-50ac-456d-bea3-6f0d663cc530",
+      "type": 11,
+      "name": "multibhop",
+      "bounds_cs_units": [
+        [
+          3968.0,
+          -3264.0,
+          -24.0
+        ],
+        [
+          4032.0,
+          -3200.0,
+          -22.0
+        ]
+      ],
+      "destination": "ch10",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "085e57e9-0877-4c51-9170-f15b36ce5945",
+      "type": 11,
+      "name": "multibhop",
+      "bounds_cs_units": [
+        [
+          4184.0,
+          -3376.0,
+          -24.0
+        ],
+        [
+          4248.0,
+          -3296.0,
+          -22.0
+        ]
+      ],
+      "destination": "ch10",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "e284b0f2-ad73-415a-9eb3-44a7b188446a",
+      "type": 11,
+      "name": "multibhop",
+      "bounds_cs_units": [
+        [
+          3968.0,
+          -3464.0,
+          -24.0
+        ],
+        [
+          4032.0,
+          -3400.0,
+          -22.0
+        ]
+      ],
+      "destination": "ch10",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "64ac8d92-7cbe-4ccf-bd2a-171009441e6c",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          2744.0,
+          -1320.0,
+          -616.0
+        ],
+        [
+          2792.0,
+          -1272.0,
+          -614.0
+        ]
+      ],
+      "destination": "tp_single1",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "d051ca1f-94df-4106-97a1-41991965bb18",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          2656.0,
+          -1432.0,
+          -606.0
+        ],
+        [
+          2704.0,
+          -1384.0,
+          -604.0
+        ]
+      ],
+      "destination": "tp_single1",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "2612f654-8046-4f86-9fa7-b1bee57838de",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          2537.0,
+          -1343.0,
+          -576.0
+        ],
+        [
+          2585.0,
+          -1295.0,
+          -574.0
+        ]
+      ],
+      "destination": "tp_single1",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "09c4e818-63a7-453b-8ae1-240c29089e62",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          2452.0,
+          -1454.0,
+          -547.0
+        ],
+        [
+          2500.0,
+          -1406.0,
+          -545.0
+        ]
+      ],
+      "destination": "tp_single1",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "bc2b80e0-61da-4297-a5a9-45888a2b06a9",
+      "type": 4,
+      "name": "anti_bhop",
+      "bounds_cs_units": [
+        [
+          -920.0,
+          -1064.0,
+          -496.0
+        ],
+        [
+          -792.0,
+          -912.0000610351562,
+          -490.43475341796875
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "449f738b-8ec5-45ee-bc73-52a74bada4d9",
+      "type": 4,
+      "name": "anti_bhop",
+      "bounds_cs_units": [
+        [
+          1248.0,
+          -4736.0,
+          -1000.0
+        ],
+        [
+          1440.0,
+          -4512.0,
+          -992.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "38d3cc85-a9d7-4786-a256-b78d519dc2a1",
+      "type": 4,
+      "name": "anti_bhop",
+      "bounds_cs_units": [
+        [
+          3251.0,
+          -6145.0,
+          -591.0
+        ],
+        [
+          3480.0,
+          -5848.0,
+          -583.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "3c46e3c0-4e96-4b5d-9cd5-676396be1f0e",
+      "type": 5,
+      "name": "start",
+      "bounds_cs_units": [
+        [
+          3872.0,
+          -800.0,
+          -416.0
+        ],
+        [
+          4048.0,
+          -608.0,
+          -264.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "c48cd378-6fad-464b-b3e0-637ef2e487ad",
+      "type": 6,
+      "name": "finish",
+      "bounds_cs_units": [
+        [
+          3712.0,
+          -472.0,
+          -128.0
+        ],
+        [
+          3872.0,
+          -40.0,
+          -14.000003814697266
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "17476e5d-0138-4285-ae58-c44ee750618e",
+      "type": 4,
+      "name": "anti_bhop",
+      "bounds_cs_units": [
+        [
+          3872.0,
+          -800.0,
+          -416.0
+        ],
+        [
+          4048.0,
+          -608.0,
+          -400.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "2124631d-2575-4698-ad5f-5b692d80463e",
+      "type": 11,
+      "name": "multibhop",
+      "bounds_cs_units": [
+        [
+          3568.0,
+          -792.0,
+          -120.0
+        ],
+        [
+          3632.0,
+          -728.0,
+          -118.0
+        ]
+      ],
+      "destination": "ch2",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "e912e716-ee81-433c-8ccb-69bd55e07f3f",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          2680.0,
+          -1168.0,
+          -634.0
+        ],
+        [
+          2728.0,
+          -1120.0,
+          -632.0
+        ]
+      ],
+      "destination": "tp_single1",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "f2ec0fff-dd7d-4387-ba3e-eb8df512c4e8",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          2520.0,
+          -1152.0,
+          -652.0
+        ],
+        [
+          2568.0,
+          -1104.0,
+          -650.0
+        ]
+      ],
+      "destination": "tp_single1",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "b52d39e1-3148-4954-a994-6f8a93f20fda",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          2400.0,
+          -1232.0,
+          -679.0
+        ],
+        [
+          2448.0,
+          -1184.0,
+          -677.0
+        ]
+      ],
+      "destination": "tp_single1",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "82c3482b-bfde-4829-9150-e4f56d163331",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          2016.0,
+          -2776.0,
+          -736.0
+        ],
+        [
+          2104.0,
+          -2688.0,
+          -730.0
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "85 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [
+        "y"
+      ],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "63f4b887-8995-4e93-a8b0-1826ba0058c1",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          2016.0,
+          -2776.0,
+          -736.0
+        ],
+        [
+          2104.0,
+          -2688.0,
+          -734.0
+        ]
+      ],
+      "destination": "ch23",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "882a3fc9-a8d5-45be-ab12-c5e6e56bef19",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          320.0,
+          -1280.0,
+          -304.0
+        ],
+        [
+          928.0,
+          -848.0,
+          -301.0000305175781
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "302 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [
+        "y"
+      ],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "cf8f7fbb-2c3f-4136-aca5-39cf9ae7196e",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          504.0,
+          -3512.0,
+          -438.125
+        ],
+        [
+          616.0,
+          -3392.0,
+          -435.125
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "-560 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [
+        "y"
+      ],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "4d7c43fc-ae6e-40dd-a1e4-a6704d3a7141",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          -672.0,
+          -1856.0,
+          -250.0
+        ],
+        [
+          -552.0,
+          -1748.0,
+          -247.0
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "852 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [
+        "y"
+      ],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "1b9ee8bf-3e10-4d6f-8ed2-7b2225e5d599",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          768.0,
+          -4384.0,
+          -875.9999389648438
+        ],
+        [
+          856.0,
+          -4296.0,
+          -872.9999389648438
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 -142 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "e764870c-1649-4a83-9944-494d7b7acdb6",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          2896.0,
+          -4144.0,
+          -888.0000610351562
+        ],
+        [
+          2952.0,
+          -4088.0,
+          -885.0
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 -202 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [
+        "x"
+      ],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "5187aa56-0b48-461e-a5b4-c4d0eb0da4e7",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          3080.0,
+          -4144.0,
+          -888.0000610351562
+        ],
+        [
+          3136.0,
+          -4088.0,
+          -885.0
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 202 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [
+        "x"
+      ],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "437ee1a3-d671-4613-846c-96014b2e3fb6",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          3184.0,
+          -4312.0,
+          -888.0000610351562
+        ],
+        [
+          3240.0,
+          -4256.0,
+          -885.0
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "-202 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [
+        "y"
+      ],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "1ef21989-438d-4a09-bdfa-f82eb20d4984",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          3184.0,
+          -4512.0,
+          -888.0000610351562
+        ],
+        [
+          3240.0,
+          -4456.0,
+          -885.0
+        ]
+      ],
+      "destination": "ch14",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "-202 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [
+        "y"
+      ],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "51db8543-ee09-483f-91e6-4ce7ee05968e",
+      "type": 4,
+      "name": "anti_bhop",
+      "bounds_cs_units": [
+        [
+          3872.0,
+          -3264.0,
+          -776.0
+        ],
+        [
+          4024.0,
+          -3176.0,
+          -775.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "ae3bcf8c-0a40-4cea-a739-aa665dc7b034",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          3696.0,
+          -2480.0,
+          -672.0
+        ],
+        [
+          3896.0,
+          -2360.0,
+          -664.0
+        ]
+      ],
+      "destination": "ch27",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "7f655e43-3749-413d-b994-9c0bfda029ff",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          3584.0,
+          -4240.0,
+          -896.0
+        ],
+        [
+          3912.0,
+          -3592.0,
+          -888.0
+        ]
+      ],
+      "destination": "ch16",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "de821de0-2de1-4c15-b9b1-3e196495baf5",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          -1123.0,
+          1016.0,
+          -1052.0
+        ],
+        [
+          -723.0,
+          1116.0,
+          -865.0
+        ]
+      ],
+      "destination": "ch97",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "2a7bf5cb-a3bc-43f5-9c48-fc3384058a0e",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          88.0,
+          360.0,
+          -1051.921875
+        ],
+        [
+          296.0,
+          1264.0,
+          -1032.0
+        ]
+      ],
+      "destination": "ch93",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "84cb79cf-8f3b-4040-9547-35c16fd1328b",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          236.0,
+          632.0,
+          -847.0
+        ],
+        [
+          296.0,
+          904.0,
+          -846.0
+        ]
+      ],
+      "destination": "ch93",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "41880038-060f-4ce1-92b2-8a050fd4bbb3",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          -288.0,
+          1184.0,
+          -1051.921875
+        ],
+        [
+          64.0,
+          1408.0,
+          -1024.0
+        ]
+      ],
+      "destination": "ch94",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "3ebb54ba-8c61-4926-b6ed-2e3d7d30e464",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          1704.0,
+          -5848.0,
+          -1015.0
+        ],
+        [
+          2280.0,
+          -5136.0,
+          -1014.0
+        ]
+      ],
+      "destination": "ch113",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "0b4ec784-d776-4df6-95f4-b6aa593b3170",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          158.0,
+          -5125.0,
+          -762.9300537109375
+        ],
+        [
+          405.0,
+          -4824.0,
+          -754.9300537109375
+        ]
+      ],
+      "destination": "ch120",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "c5fa5482-938d-4c92-8ee5-c93445d53bb1",
+      "type": 4,
+      "name": "anti_bhop",
+      "bounds_cs_units": [
+        [
+          3627.0,
+          -5824.0,
+          -591.0
+        ],
+        [
+          3793.0,
+          -5648.0,
+          -583.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "fb72b4b8-4ab5-4270-a165-01665790f8cf",
+      "type": 4,
+      "name": "anti_bhop",
+      "bounds_cs_units": [
+        [
+          3793.0,
+          -6145.0,
+          -591.0
+        ],
+        [
+          3962.1552734375,
+          -5648.0,
+          -583.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "e379ca97-372f-42b7-80a3-9105909e7d8e",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          4530.00048828125,
+          -4040.999755859375,
+          -284.00531005859375
+        ],
+        [
+          4747.99951171875,
+          -3940.999755859375,
+          -283.00531005859375
+        ]
+      ],
+      "destination": "ch132",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "44873949-4f7e-4609-9448-760989ef4e06",
+      "type": 1,
+      "name": "modifier",
+      "bounds_cs_units": [
+        [
+          1792.0,
+          104.0,
+          -1063.9998779296875
+        ],
+        [
+          3368.0,
+          1600.0,
+          -351.9999694824219
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.25,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "826dad5d-71d1-49d3-bc79-8e42365dadf5",
+      "type": 1,
+      "name": "modifier",
+      "bounds_cs_units": [
+        [
+          -1400.0,
+          144.0,
+          -1064.0
+        ],
+        [
+          728.0,
+          2032.000244140625,
+          -352.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.75,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "ef10fb4f-9c41-4a80-8fe1-1b89f2c628d7",
+      "type": 4,
+      "name": "anti_bhop",
+      "bounds_cs_units": [
+        [
+          -823.9999389648438,
+          -1960.0,
+          -784.0
+        ],
+        [
+          -472.00006103515625,
+          -1792.0,
+          -776.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "3a0cabf7-ff6d-4a2e-a7b9-eb2dbe28459e",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          2356.0,
+          712.0,
+          -880.0779418945312
+        ],
+        [
+          2632.0,
+          794.0,
+          -878.0779418945312
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 150",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "ee208aed-14c0-4cba-aaad-d248774814b5",
+      "type": 11,
+      "name": "multibhop",
+      "bounds_cs_units": [
+        [
+          320.0,
+          -1280.0,
+          -304.0
+        ],
+        [
+          936.0,
+          -848.0,
+          -302.0
+        ]
+      ],
+      "destination": "chbet",
+      "teleport_delay_seconds": 0.10000000149011612,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "9f23d073-3388-4315-a744-60b50cf99b92",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          -768.0,
+          -352.0,
+          -392.0
+        ],
+        [
+          -256.0,
+          0.0,
+          -384.0
+        ]
+      ],
+      "destination": "ch63",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "c5721fa8-3a5f-4d38-8b4f-0bdd30a13bbd",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          -824.0,
+          -1712.0,
+          -872.0
+        ],
+        [
+          -472.0,
+          -1448.0,
+          -864.0
+        ]
+      ],
+      "destination": "ch75",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "76095491-0543-4813-b32f-76129e0ddf6d",
+      "type": 10,
+      "name": "delayed_teleport",
+      "bounds_cs_units": [
+        [
+          -824.0,
+          -1992.0,
+          -696.0
+        ],
+        [
+          -472.0,
+          -1760.0,
+          -688.0
+        ]
+      ],
+      "destination": "ch75",
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "dcda0aa9-b86c-42e1-9fd0-fe810ce8c5d4",
+      "type": 14,
+      "name": "push",
+      "bounds_cs_units": [
+        [
+          3872.0,
+          -3264.0,
+          -776.0
+        ],
+        [
+          4024.0,
+          -3176.0,
+          -772.0
+        ]
+      ],
+      "destination": null,
+      "teleport_delay_seconds": 0.0,
+      "push_amount_cs_units": "0 0 500",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 0.4000000059604645,
+      "jump_multiplier": 1.0,
+      "slide": false
+    },
+    {
+      "id": "b5fa7457-631a-4fed-b09d-34386d634bed",
+      "type": 12,
+      "name": "single_bhop",
+      "bounds_cs_units": [
+        [
+          264.0,
+          -3576.0,
+          -976.0
+        ],
+        [
+          384.0,
+          -3554.0,
+          -906.0
+        ]
+      ],
+      "destination": "ch85",
+      "teleport_delay_seconds": 1.0,
+      "push_amount_cs_units": "0 0 0",
+      "push_conditions": [
+        "jump_event"
+      ],
+      "push_absolute_source_axes": [],
+      "push_delay_seconds": 0.0,
+      "push_cooldown_seconds": 0.10000000149011612,
+      "cancel_push_on_teleport": true,
+      "gravity_multiplier": 1.0,
+      "jump_multiplier": 1.0,
+      "slide": false
+    }
+  ]
 }

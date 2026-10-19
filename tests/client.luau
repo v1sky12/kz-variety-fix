@@ -1,0 +1,62 @@
+Data.zones={}
+local passed,failed=0,0
+local function test(name,fn)
+    local ok,err=pcall(fn)
+    if ok then passed+=1;print('PASS '..name) else failed+=1;print('FAIL '..name..': '..tostring(err)) end
+end
+local function near(a,b) assert(math.abs(a-b)<1e-5,tostring(a)..' ~= '..tostring(b)) end
+local function last(kind)
+    for i=#sent,1,-1 do if sent[i].kind==kind then return sent[i] end end
+end
+player.Character=character
+client.setup(character)
+test('brush setup takes ownership and compiles actual floor brush',function()
+    assert(client.session() and not humanoid.EvaluateStateMachine)
+    assert(player:GetAttribute('KZClassicMotorActive'));assert(fallback.destroyed)
+end)
+test('Warp-before-attribute applies exact short teleport and keeps speed',function()
+    local s=client.session();s.motor.v=Vector3.new(400,0,0)
+    Net.OnClientEvent:Fire('Warp',1,nil,false,Vector3.zero,CFrame.new(Vector3.new(1,36.001,0)))
+    near(s.motor:feet().X,1);near(s.motor.v.X,400)
+    RunService.PostSimulation:Fire(0);near(s.motor.v.X,400);near(s.serial,1)
+end)
+test('attribute-before-Warp preserves original speed exactly once',function()
+    local s=client.session();player:SetAttribute('KZTeleportSerial',2)
+    RunService.PostSimulation:Fire(0);near(s.motor.v.X,0)
+    Net.OnClientEvent:Fire('Warp',2,nil,false,Vector3.zero,CFrame.new(Vector3.new(2,36.001,0)))
+    near(s.motor.v.X,400);near(s.motor:feet().X,2)
+    Net.OnClientEvent:Fire('Warp',2,nil,true,Vector3.zero,CFrame.new(Vector3.new(99,36.001,0)))
+    near(s.motor:feet().X,2)
+end)
+test('absolute vertical push wins over additive push in same tick',function()
+    local s=client.session();s.motor.v=Vector3.zero
+    Net.OnClientEvent:Fire('Push',Vector3.new(0,500,0),{false,true,false},2,{false,false,true})
+    Net.OnClientEvent:Fire('Push',Vector3.new(0,100,0),{false,false,false},2)
+    RunService.PostSimulation:Fire(1/128);near(s.motor.v.Y,500-800/128)
+end)
+test('client publishes real virtual velocity with ordered motion id',function()
+    local s=client.session();s.nextMotion=0;RunService.PostSimulation:Fire(0)
+    local event=last('Motion');assert(event.args[1].character==character)
+    near(event.args[1].teleportSerial,2);near(event.args[1].velocity.Y,s.motor.v.Y)
+end)
+test('client synchronizes ladder attachment for bhop state reset',function()
+    local s=client.session();local saved=Data.ladderSurfaces
+    Data.ladderSurfaces={{id=1,axis=1,bounds={{0,-32,0},{1,32,200}}}}
+    s.motor.p=Vector3.new(0,36.001,0);s.motor.v=Vector3.zero;root.CFrame=CFrame.new(s.motor.p)
+    keys.W=true;RunService.PostSimulation:Fire(1/128);keys.W=false
+    local event=last('LadderAttach');assert(event and event.args[1].id==1);assert(s.ladder)
+    Data.ladderSurfaces=saved
+end)
+test('character removal restores humanoid state and releases query resources',function()
+    player.CharacterRemoving:Fire(character)
+    assert(client.session()==nil);assert(humanoid.EvaluateStateMachine)
+end)
+test('fallback releases mutex before enabling saved motor',function()
+    client.setup(character)
+    client.fallback('forced test failure')
+    assert(last('MotorReset').args[1].character==character)
+    assert(not player:GetAttribute('KZClassicMotorActive'))
+    assert(fallback.Disabled==false and script.Disabled==true)
+end)
+print(string.format('CLIENT RESULT %d passed, %d failed',passed,failed))
+assert(failed==0,'client regressions failed')

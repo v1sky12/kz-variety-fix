@@ -1,15 +1,26 @@
-# kz_variety_fix installer
+# Открыть карту
 
-The package contains one Roblox place file. The installer validates the ZIP and RBXL header, makes a timestamped backup, and copies the place atomically through a temporary file.
+1. Распакуй ZIP в новую папку.
+2. В Roblox Studio выбери File → Open from File и открой `kz_variety_fix.rbxl`.
+3. Нажми Play. Скрипты уже находятся внутри place; вручную вставлять их не нужно.
+
+Стандартная камера Roblox сохранена. Наэкранные кнопки не добавляются. Управление: WASD, Space/колесо — прыжок, Ctrl — приседание, Shift — ходьба, C/V — CP/TP, R — рестарт, E — кнопка таймера, J — jumpstats.
+
+# Установка с резервной копией (необязательно)
+
+Нужны Python 3.11+ и зависимости:
 
 ```bash
-python3 install_kz_variety_fix.py install kz_variety_fix_updated.zip ./kz_variety_fix.rbxl
+python -m pip install -r requirements.txt
+python install_kz_variety_fix.py install kz_variety_fix_updated.zip ./kz_variety_fix.rbxl
 ```
 
-Rollback to a backup created by the installer:
+Установщик проверяет ZIP, все чанки и длины Source, создаёт уникальную резервную копию и заменяет файл атомарно. Если проверка не пройдена, существующая карта остаётся на месте.
+
+Для отката подставь полный путь резервной копии, который напечатал установщик:
 
 ```bash
-python3 install_kz_variety_fix.py rollback ./kz_variety_fix.rbxl.backup-YYYYMMDDTHHMMSSZ ./kz_variety_fix.rbxl
+python install_kz_variety_fix.py rollback ./ПУТЬ_РЕЗЕРВНОЙ_КОПИИ ./kz_variety_fix.rbxl
 ```
 
-Keep `KZBrush_V1` and the V5 backup inside the place. The active controller mutex prevents two movement controllers from running at once. Test in a copy of the Roblox place before publishing.
+Перед откатом текущая версия тоже сохраняется. V5 и `KZBrush_V1` сохранены внутри place. Активен один brush-мотор; запасной запускается при отказе основного.
