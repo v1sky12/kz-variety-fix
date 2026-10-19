@@ -26,6 +26,7 @@ function Players:GetPlayerByUserId() return nil end
 local serverMap={}
 function serverMap:GetPivot() return CFrame.new() end
 function serverMap:GetAttribute(n) if n=='KZStudsPerCSUnit' then return 1 end end
+function serverMap:GetDescendants() return {} end
 function serverMap:FindFirstChild() return nil end
 function serverMap:IsA(name) return name=='Model' end
 local workspace={Gravity=800}
@@ -52,7 +53,7 @@ local ReplicatedStorage={WaitForChild=function() return shared end}
 local PhysicsService={RegisterCollisionGroup=function() end,CollisionGroupSetCollidable=function() end}
 local services={Players=Players,RunService=RunService,ReplicatedStorage=ReplicatedStorage,TextChatService=TextChatService,PhysicsService=PhysicsService}
 local game={GetService=function(_,name) return assert(services[name],name) end}
-local require=function(name) return name=='KZMapData' and Data or name=='KZBhop' and Bhop or error(name) end
+local require=function(name) return name=='KZMapData' and Data or name=='KZBlockController' and Blocks or name=='KZBhop' and Bhop or error(name) end
 local RaycastParams={new=function() return {} end}
 local Enum={RaycastFilterType={Include='Include',Exclude='Exclude'}}
 local Instance={new=function() return {Triggered=signal()} end}

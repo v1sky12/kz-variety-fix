@@ -37,14 +37,17 @@ def main():
     # Supply the real imported entities and ladders to the actual map adapter.
     prelude = "local fixture=(function()\n" + fixture + "\nend)()\n"
     prelude += "local Vector3,CFrame=fixture.Vector3,fixture.CFrame\nlocal warn=print\n"
+    prelude += "local typeof=function(v) local m=type(v)=='table' and getmetatable(v);return m and m.__type or type(v) end\n"
     prelude += 'local Enum={PartType={Block="Block"}}\n'
     prelude += "local imported=" + literal(data) + "\n"
     prelude += "local game={GetService=function() return {JSONDecode=function() return imported end} end}\n"
-    for variable, name in (("Core", "KZClassicCore"), ("Collision", "KZBrushCollision"), ("Motor", "KZBrushMotor"), ("Bhop", "KZBhop"), ("Data", "KZMapData")):
+    for variable, name in (("Blocks", "KZBlockController"), ("Core", "KZClassicCore"), ("Collision", "KZBrushCollision"), ("Motor", "KZBrushMotor"), ("Bhop", "KZBhop"), ("Data", "KZMapData")):
         # Module closures deliberately do not share Core with the motor. In
         # Roblox each ModuleScript has its own global environment as well.
         if variable == "Motor":
             prelude += "local Motor=(function() local Core=nil\n" + module(name) + "\nend)()\n"
+        elif variable in ("Bhop", "Data"):
+            prelude += "local " + variable + "=(function() local script={Parent={WaitForChild=function(_,n) return n end}};local require=function(n) assert(n=='KZBlockController');return Blocks end\n" + module(name) + "\nend)()\n"
         else:
             prelude += "local " + variable + "=(function()\n" + module(name) + "\nend)()\n"
     server_prelude = prelude + (ROOT / "tests/server_fixture.luau").read_text()
@@ -57,6 +60,9 @@ def main():
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / "physics.luau"
         path.write_text(prelude + (ROOT / "tests/physics.luau").read_text())
+        status |= subprocess.run([str(args.luau.resolve()), str(path)], cwd=ROOT).returncode
+        path = Path(directory) / "blocks.luau"
+        path.write_text(prelude + (ROOT / "tests/blocks.luau").read_text())
         status |= subprocess.run([str(args.luau.resolve()), str(path)], cwd=ROOT).returncode
         path = Path(directory) / "client.luau"
         path.write_text(client_prelude + (ROOT / "tests/client.luau").read_text())

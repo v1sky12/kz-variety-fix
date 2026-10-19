@@ -45,6 +45,7 @@ root.Parent=character;humanoid.Parent=character;hull.Parent=character
 local floor={Anchored=true,CanCollide=true,Shape='Block',Size=Vector3.new(10000,10,10000),CFrame=CFrame.new(Vector3.new(0,-5,0))}
 function floor:IsA(n) return n=='BasePart' or n=='Part' end
 function floor:GetFullName() return 'Map.Floor' end
+function floor:GetAttribute() return nil end
 local clientMap={}
 function clientMap:GetAttribute(n) if n=='KZStudsPerCSUnit' then return 1 end end
 function clientMap:GetPivot() return CFrame.new() end

@@ -209,5 +209,36 @@ test('checkpoint key captures fresh camera view before next Motion packet',funct
     server.action(p,'Checkpoint',{view=Vector3.new(-1,0,0)})
     local cp=s.checkpoints[#s.checkpoints];assert(cp and cp.angles);near(cp.angles[2],90)
 end)
+test('controller checkpoint trigger warps only its player and counts a practice TP',function()
+    step(.1);local otherPosition=r2.Position
+    local cp={source={123,45,0},angles={12,34,0},crouched=false}
+    s.checkpoints={cp};s.index=1;s.teleports=0;s.inside={};s.previousFeet=nil;s.touches={}
+    local e=assert(Blocks.fromAttributes({KZBlockType='Teleport',KZBlockId='cp',KZReturnToCheckpoint=true}))
+    e.bounds={{-32,-32,-1},{32,32,1}};Data.zones={e};r.CFrame=CFrame.new(Vector3.new(0,36,0))
+    local serial=s.teleportSerial;step(.02)
+    near(s.teleportSerial,serial+1);near(s.teleports,1)
+    local feet=Data.feetSource(serverMap,r,{HipHeight=35});near(feet.X,123);near(feet.Y,45)
+    local warp=last('Warp',p);near(warp.args[2][1],12);near(warp.args[2][2],34)
+    near((r2.Position-otherPosition).Magnitude,0);Data.zones={}
+end)
+test('controller checkpoint trigger with no CP or destination leaves player in place',function()
+    step(.1);s.checkpoints={};s.index=0;s.inside={};s.previousFeet=nil;s.touches={}
+    local e=assert(Blocks.fromAttributes({KZBlockType='Teleport',KZBlockId='noCp',KZReturnToCheckpoint=true}))
+    e.bounds={{-32,-32,-1},{32,32,1}};Data.zones={e};r.CFrame=CFrame.new(Vector3.new(0,36,0))
+    local serial=s.teleportSerial;step(.02);near(s.teleportSerial,serial)
+    near((r.Position-Vector3.new(0,36,0)).Magnitude,0);Data.zones={}
+end)
+test('controller single block enforces reuse through real server contact and Jump messages',function()
+    step(.1);Bhop.reset(s);s.inside={};s.previousFeet=nil;s.touches={};s.motion=nil;s.lastClientJumpId=nil
+    local e={id='controllerSingle',class='trigger_multiple',triggerType=12,bounds={{-32,-32,-1},{32,32,1}},
+        properties={timer_teleport_destination='nearDestination',timer_teleport_delay='.1'}}
+    Data.zones={e};r.CFrame=CFrame.new(Vector3.new(0,36,0));step(.02)
+    server.action(p,'Jump',{jumpId=1,character=p.Character,teleportSerial=s.teleportSerial,feet=Vector3.zero})
+    assert(s.lastSingle==e.id)
+    r.CFrame=CFrame.new(Vector3.new(0,136,0));step(.1)
+    local serial=s.teleportSerial;r.CFrame=CFrame.new(Vector3.new(0,36,0));step(.02)
+    near(s.teleportSerial,serial+1);near(Data.feetSource(serverMap,r,{HipHeight=35}).X,300)
+    assert(s.lastSingle==nil);Data.zones={}
+end)
 print(string.format('NETWORK RESULT %d passed, %d failed',passed,failed))
 assert(failed==0,'network regressions failed')

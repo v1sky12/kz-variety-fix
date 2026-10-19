@@ -57,6 +57,7 @@ local function setup(character)
     local map=Data.findMap(workspace)
     if not map then fallback('Active calibrated map missing');return end
     local unit=Data.unitFor(map);local brushes,meshes={},{};local count=0
+    Data.addBlockZones(map)
     -- Build before changing character physics. Visual mesh bounds are never used.
     local ok,err=pcall(function()
         for _,part in ipairs(map:GetDescendants()) do
@@ -185,7 +186,7 @@ local function ladderStep(s,input,dt,zone)
 end
 local function telemetry(s)
     local m,r=s.motor,s.r
-    r:SetAttribute('KZMovementBuild','2026-10-19-r2')
+    r:SetAttribute('KZMovementBuild','2026-10-19-r3')
     r:SetAttribute('KZSeamRecoveries',m.recoveries or 0)
     r:SetAttribute('KZSurfing',s.ladder==nil and m.surfNormal~=nil)
     r:SetAttribute('KZSurfNormal',s.ladder==nil and m.surfNormal or nil)

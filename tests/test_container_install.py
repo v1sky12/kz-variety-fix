@@ -8,7 +8,7 @@ import zipfile
 import zstandard
 
 from install_kz_variety_fix import install, replace_place, rollback
-from rbxl_container import ContainerError, chunks, property_header, replace_source_arrays, validate
+from rbxl_container import ContainerError, add_module_script, chunks, decode_references, encode_references, property_header, replace_source_arrays, validate
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -51,9 +51,37 @@ class ContainerAndInstallerTests(unittest.TestCase):
         return path
 
     def test_actual_place_structure_is_complete(self):
-        self.assertEqual(self.report["scripts"], 428)
-        self.assertEqual(self.report["instances"], 135676)
-        self.assertEqual(self.report["classes"], 92)
+        self.assertEqual(self.report["scripts"], 429)
+        self.assertEqual(self.report["instances"], 135677)
+        self.assertEqual(self.report["classes"], 93)
+        self.assertEqual(self.report["paths"][135676], "ReplicatedStorage/KZClassic/KZBlockController")
+
+    def test_new_module_preserves_all_existing_property_chunks_and_paths(self):
+        instance = max(self.report["paths"]) + 1
+        result = add_module_script(self.place, instance, 17018, "TestModule", b"return {test=true}")
+        after = validate(result)
+        self.assertEqual(after["sources"][instance], b"return {test=true}")
+        for ref, path in self.report["paths"].items():
+            self.assertEqual(after["paths"][ref], path)
+        old_chunks = [c.encoded for c in chunks(self.place) if c.tag != b"PRNT"]
+        new_chunks = [c.encoded for c in chunks(result) if c.tag != b"PRNT"]
+        position = 0
+        for encoded in new_chunks:
+            if position < len(old_chunks) and encoded == old_chunks[position]:
+                position += 1
+        self.assertEqual(position, len(old_chunks))
+
+    def test_new_module_rejects_duplicate_name_id_and_missing_parent(self):
+        instance = max(self.report["paths"]) + 1
+        for ref, parent, name in [(17021, 17018, "Test"), (instance, -100, "Test"), (instance, 17018, "KZBhop")]:
+            with self.subTest(ref=ref, parent=parent, name=name), self.assertRaises(ContainerError):
+                add_module_script(self.place, ref, parent, name, b"return {}")
+
+    def test_reference_encoding_round_trips_signed_parent_deltas(self):
+        values = [0, 7, -1, 10, 135676, 135677, -1]
+        self.assertEqual(decode_references(encode_references(values), len(values)), values)
+        with self.assertRaises(ContainerError):
+            encode_references([1 << 32])
 
     def test_stale_source_length_is_detected(self):
         with self.assertRaises(ContainerError):

@@ -82,5 +82,13 @@
   "KZClassicGameplay.luau": {
     "id": 17038,
     "path": "ServerScriptService/KZClassicGameplay"
+  },
+  "KZBlockController.luau": {
+    "id": 135676,
+    "path": "ReplicatedStorage/KZClassic/KZBlockController",
+    "create": {
+      "parent": 17018,
+      "class": "ModuleScript"
+    }
   }
 }

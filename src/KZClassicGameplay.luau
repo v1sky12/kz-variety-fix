@@ -13,6 +13,7 @@ local Net = shared:WaitForChild("Action")
 local map = Data.findMap(workspace) or workspace:WaitForChild("KZ_Variety_CS2_ROBLOX_V21",15)
 assert(map and map:IsA("Model"), "Active V21/V20/V19/V18/V17 map is missing")
 Data.addPracticeZones(map)
+Data.addBlockZones(map)
 local unit = Data.unitFor(map)
 local states, records, connections = {}, {}, {}
 local sessionBest
@@ -33,7 +34,7 @@ local function characterParts(player)
     if not h or not r or h.Health <= 0 then return end
     return c, h, r
 end
-local Bhop=require(shared:WaitForChild("KZBhop"))
+local Blocks=require(shared:WaitForChild("KZBlockController"))
 local function grounded(player)
     local c, h, r = characterParts(player)
     if not r then return false end
@@ -66,7 +67,7 @@ local function resetMapState(s)
     s.pushPending, s.pushPendingById, s.pushTimes = {}, {}, {}
     s.lastClientJumpId=nil;s.motion=nil;s.motionSequence=nil;s.lastMotionAt=nil;s.sentRevision=nil
     s.mapRevision=(s.mapRevision or 0)+1;s.previousFeet=nil
-    s.activatorName = ""; Bhop.reset(s)
+    s.activatorName = ""; Blocks.reset(s)
 end
 local function publishRecords()
     local sorted = {}
@@ -82,7 +83,7 @@ local function startRun(player, s, crossingTime)
     if s.spectating then return end
     s.start = crossingTime or now(); s.elapsed = 0; s.runState = "Running"; s.runId = s.runId + 1
     resetCheckpoints(player, s)
-    Bhop.reset(s);s.pushPending={};s.pushPendingById={};s.pushTimes={}; s.invalid = false
+    Blocks.reset(s);s.pushPending={};s.pushPendingById={};s.pushTimes={}; s.invalid = false
     attr(player, "RunId", s.runId); attr(player, "RunState", "Running")
     attr(player, "RunStartTime", s.start); attr(player, "RunElapsed", 0)
     attr(player, "Stage", 1); attr(player, "RunCategory", "PRO")
@@ -122,7 +123,7 @@ local function moveTo(player, s, destination, angles, resetSpeed, countPractice,
     r.AssemblyLinearVelocity = resetSpeed and Vector3.zero or oldVelocity
     r.AssemblyAngularVelocity = Vector3.zero
     s.teleportSerial = s.teleportSerial + 1
-    Bhop.reset(s)
+    Blocks.reset(s)
     attr(player, "TeleportSerial", s.teleportSerial)
     -- Client acknowledges every warp, including short checkpoint teleports.
     Net:FireClient(player, "Warp", s.teleportSerial, angles, resetSpeed, oldVelocity,r.CFrame)
@@ -242,15 +243,18 @@ local function outputs(player, s, e, event, crossingTime)
 end
 local function teleportEntity(player, s, e)
     local p = e.properties
-    local dest = Data.byName[p.timer_teleport_destination or p.target or ""]
+    local dest,isCheckpoint = Blocks.resolveDestination(e,s.checkpoints,s.index,Data.byName)
     if not dest then return false end
     local _, h, r = characterParts(player)
     local relative
     if p.timer_teleport_relative == "1" and r then
         relative = r.Position - Vector3.new(0,h.HipHeight+r.Size.Y/2,0) - Data.worldPoint(map, e.origin)
     end
-    return moveTo(player, s, dest.origin, p.timer_teleport_use_dest_angles == "0" and nil or dest.angles,
-        p.timer_teleport_reset_speed ~= "0", false, relative)
+    if isCheckpoint then s.crouchWanted=dest.crouched;if dest.crouched then setCrouch(player,s,true) end end
+    local moved=moveTo(player, s, dest.origin, p.timer_teleport_use_dest_angles == "0" and nil or dest.angles,
+        p.timer_teleport_reset_speed ~= "0", isCheckpoint, relative)
+    if moved and isCheckpoint and not dest.crouched then setCrouch(player,s,false) end
+    return moved
 end
 local function push(player, s, e, condition)
     local p = e.properties
@@ -350,10 +354,10 @@ local function action(player, name, payload)
         if not reported or Data.findLadder(feet,height,reported)~=reported then return end
         for _,e in ipairs(Data.zones) do
             local kind=e.triggerType
-            if (kind==11 or kind==12 or kind==13) and Data.active(e,s)
+            if Blocks.isBhop(e) and Data.active(e,s)
                 and Data.filterPass(e.properties.filtername,s) and Data.bhopIntersects(e,feet,height) then return end
         end
-        Bhop.reset(s)
+        Blocks.reset(s)
         return
     elseif name == "Restart" then
         local dest = startDestination(); if dest then s.lastWarp=nil;moveTo(player, s, dest.origin, dest.angles, true, false) end
@@ -426,7 +430,7 @@ local function action(player, name, payload)
         local block
         for _,e in ipairs(Data.zones) do
             local kind=e.triggerType
-            if (kind==11 or kind==12 or kind==13) and Data.active(e,s)
+            if Blocks.isBhop(e) and Data.active(e,s)
                 and Data.filterPass(e.properties.filtername,s)
                 and Data.bhopIntersects(e,jumpFeet,s.crouched and 54 or 72) then block=e;break end
         end
@@ -435,10 +439,10 @@ local function action(player, name, payload)
         s.bhopServerTakeoff=nil
         if not alreadyObserved then
             if block then
-                if Bhop.takeoff(s,block.id,block.triggerType,time) then
+                if Blocks.takeoff(s,block.id,block.triggerType,time) then
                     teleportEntity(player,s,block);return
                 end
-            else Bhop.takeoff(s,nil,nil,time) end
+            else Blocks.takeoff(s,nil,nil,time) end
         end
         -- Client takeoff can arrive before the replicated root leaves ground.
         -- Defer stale standing contacts briefly, then require real departure
@@ -499,7 +503,7 @@ local function zoneEvents(s,feet,height,span,time)
     end
     for order,e in ipairs(Data.zones) do
         local kind=e.triggerType
-        local bhop=kind==11 or kind==12 or kind==13
+        local bhop=Blocks.isBhop(e)
         local bounds=e.class=="func_water" and Data.waterBounds(map,e) or e.bounds
         local inside=bhop and Data.bhopIntersects(e,feet,height) or not bhop and Data.intersects(bounds,feet,height)
         local enter,leave
@@ -513,7 +517,7 @@ local function zoneEvents(s,feet,height,span,time)
             local contact=bhop and 1 or first
             if kind==10 then
                 local start=s.touches[e.id] or time-span*(1-first)
-                contact=span>0 and math.max(first,(start+math.max(0,number(e.properties.timer_teleport_delay,0))-(time-span))/span) or 1
+                contact=span>0 and math.max(first,(start+Blocks.describe(e).delay-(time-span))/span) or 1
             end
             if contact<=last+1e-9 then add(e,2,math.min(contact,last),duration,inside,order)
             elseif inside then add(e,2,1,duration,true,order) end
@@ -577,24 +581,20 @@ connect(RunService.Heartbeat, function(dt)
                     if event.inside then touched[e.id]=true end
                     if event.phase==1 then
                         s.touches[e.id]=crossingTime;outputs(player,s,e,"OnStartTouch",crossingTime)
+                        Blocks.onEnter(s,e)
                         if kind==5 then stopRun(player,s,"Ready",crossingTime);resetCheckpoints(player,s)
                         elseif kind==6 then finishRun(player,s,crossingTime)
                         elseif kind==2 and s.runState=="Running" then resetCheckpoints(player,s,false)
-                        elseif kind==3 then Bhop.reset(s)
                         elseif kind==9 then attr(player,"Stage",number(e.properties.timer_zone_stage_number,1))
                         elseif kind==14 then push(player,s,e,"start_touch") end
                     else
-                        local delay=number(e.properties.timer_teleport_delay,0)
-                        local triggerWarp=e.class=="trigger_teleport" or kind==10
-                        if kind==11 or kind==12 or kind==13 then
+                        local triggerWarp=Blocks.shouldTeleport(s,e,crossingTime,onGround and not departurePending,s.touches[e.id])
+                        if Blocks.isBhop(e) then
                             bhopGround=bhopGround or onGround
-                            triggerWarp=onGround and not departurePending and Bhop.land(s,e.id,kind,time,delay)
                             if s.wasGrounded and not onGround and not departureAcknowledged and time>=(s.bhopIgnoreUntil or 0) then
-                                triggerWarp=Bhop.takeoff(s,e.id,kind,time)
+                                triggerWarp=Blocks.takeoff(s,e.id,kind,time)
                                 if not triggerWarp then s.bhopServerTakeoff={id=e.id,time=time} end
                             end
-                        elseif kind==10 then
-                            triggerWarp=s.touches[e.id]~=nil and crossingTime-s.touches[e.id]+1e-9>=math.max(0,delay)
                         end
                         if triggerWarp and teleportEntity(player,s,e) then warped=true;break end
                         if kind==14 then push(player,s,e,"touch") end
@@ -615,10 +615,10 @@ connect(RunService.Heartbeat, function(dt)
             end
             if not warped then
                 s.inside = touched
-                if not onGround then Bhop.clearContacts(s)
+                if not onGround then Blocks.clearContacts(s)
                 else
-                    Bhop.retainContacts(s,touched)
-                    if not bhopGround and not departurePending and time>=(s.bhopIgnoreUntil or 0) then Bhop.reset(s) end
+                    Blocks.retainContacts(s,touched)
+                    if not bhopGround and not departurePending and time>=(s.bhopIgnoreUntil or 0) then Blocks.reset(s) end
                 end
             end
             -- A delayed frame must still apply Source I/O chronologically.
@@ -669,4 +669,4 @@ connect(script.Destroying, function()
         if command:IsA("TextChatCommand") and command.Name:sub(1, 10) == "KZClassic_" then command:Destroy() end
     end
 end)
-print("KZ Classic V7.17 gameplay ready: ordered swept zones, Source ground footprint, CP view, session PRO/TP records")
+print("KZ Classic V7.18 gameplay ready: ordered swept zones, Source ground footprint, CP view, session PRO/TP records")

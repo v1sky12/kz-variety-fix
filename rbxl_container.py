@@ -225,6 +225,58 @@ def replace_source_arrays(data: bytes, replacements: dict[int, bytes]) -> bytes:
     return result
 
 
+def encode_references(values: list[int]) -> bytes:
+    encoded, previous = [], 0
+    for value in values:
+        delta = value - previous
+        if not -(1 << 31) <= delta < (1 << 31):
+            raise ContainerError("reference delta exceeds int32")
+        encoded.append(((delta << 1) ^ (delta >> 31)).to_bytes(4, "big"))
+        previous = value
+    return bytes(value[row] for row in range(4) for value in encoded)
+
+
+def encode_chunk(tag: bytes, payload: bytes) -> bytes:
+    compressed = zstandard.ZstdCompressor(level=3).compress(payload)
+    return tag + struct.pack("<III", len(compressed), len(payload), 0) + compressed
+
+
+def add_module_script(data: bytes, instance: int, parent: int, name: str, source: bytes) -> bytes:
+    """Add one isolated class group; preserve every pre-existing property array."""
+    report = validate(data)
+    source.decode("utf-8", errors="strict")
+    if instance < 0 or instance in report["paths"] or parent not in report["paths"]:
+        raise ContainerError("invalid new module or parent reference")
+    if not name or "/" in name or any(path == report["paths"][parent] + "/" + name for path in report["paths"].values()):
+        raise ContainerError("duplicate or invalid module name")
+    items = chunks(data)
+    cid = max(uint(c.payload, 0) for c in items if c.tag == b"INST") + 1
+    declarations = [encode_chunk(b"INST", struct.pack("<I", cid) + write_string(b"ModuleScript") + b"\0" + struct.pack("<I", 1) + encode_references([instance]))]
+    for prop, value in ((b"Name", name.encode()), (b"Source", source)):
+        declarations.append(encode_chunk(b"PROP", struct.pack("<I", cid) + write_string(prop) + b"\1" + write_string(value)))
+    header = bytearray(data[:32])
+    struct.pack_into("<II", header, 16, report["classes"] + 1, report["instances"] + 1)
+    output = [bytes(header)]
+    parent_chunks = 0
+    for chunk in items:
+        if chunk.tag == b"PRNT":
+            parent_chunks += 1
+            count = uint(chunk.payload, 1)
+            ids = decode_references(chunk.payload[5:5 + 4 * count], count)
+            parents = decode_references(chunk.payload[5 + 4 * count:], count)
+            output.extend(declarations)
+            output.append(encode_chunk(b"PRNT", b"\0" + struct.pack("<I", count + 1) + encode_references(ids + [instance]) + encode_references(parents + [parent])))
+        else:
+            output.append(chunk.encoded)
+    if parent_chunks != 1:
+        raise ContainerError("module insertion requires one parent table")
+    result = b"".join(output)
+    after = validate(result)
+    if any(after["paths"][i] != p for i, p in report["paths"].items()) or after["sources"] != report["sources"] | {instance: source}:
+        raise ContainerError("module insertion changed an existing instance")
+    return result
+
+
 def public_report(report: dict) -> dict:
     return {key: value for key, value in report.items() if key not in ("sources", "paths", "disabled")}
 

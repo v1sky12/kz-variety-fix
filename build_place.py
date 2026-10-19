@@ -8,10 +8,10 @@ import subprocess
 import tempfile
 import zipfile
 
-from rbxl_container import chunks, property_header, public_report, replace_source_arrays, validate
+from rbxl_container import add_module_script, chunks, property_header, public_report, replace_source_arrays, validate
 
 ROOT = Path(__file__).resolve().parent
-PACKAGE_FILES = ("INSTALL_KZ_VARIETY_FIX.md", "PLAYTEST_RU.md", "install_kz_variety_fix.py", "rbxl_container.py", "requirements.txt")
+PACKAGE_FILES = ("INSTALL_KZ_VARIETY_FIX.md", "PLAYTEST_RU.md", "BLOCKS_RU.md", "special_blocks_audit.json", "install_kz_variety_fix.py", "rbxl_container.py", "requirements.txt")
 
 
 def verify_sources(data: bytes, compiler: Path | None = None) -> dict:
@@ -38,8 +38,16 @@ def verify_sources(data: bytes, compiler: Path | None = None) -> dict:
 
 
 def build(base: bytes) -> bytes:
-    before = validate(base)
     manifest = json.loads((ROOT / "src/manifest.json").read_text())
+    before = validate(base)
+    for filename, target in manifest.items():
+        create = target.get("create")
+        if target["id"] not in before["paths"] and create:
+            if create["class"] != "ModuleScript":
+                raise ValueError("only explicit ModuleScript additions are supported")
+            base = add_module_script(base, target["id"], create["parent"], target["path"].rsplit("/", 1)[1],
+                                     (ROOT / "src" / filename).read_bytes())
+            before = validate(base)
     replacements = {}
     for filename, target in manifest.items():
         if before["paths"].get(target["id"]) != target["path"]:
