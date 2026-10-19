@@ -55,7 +55,7 @@ def main():
     server_prelude += "\nreturn {states=states,action=action,moveTo=moveTo,push=push,startRun=startRun,outputs=outputs,applyOutput=applyOutput}\nend)()\n"
     client_prelude = prelude + (ROOT / "tests/client_fixture.luau").read_text()
     client_prelude += "\nlocal client=(function()\n" + module("KZClassicMovement")
-    client_prelude += "\nreturn {setup=setup,session=function() return session end,fallback=fallback,ladderStep=ladderStep}\nend)()\n"
+    client_prelude += "\nreturn {setup=setup,session=function() return session end,fallback=fallback,ladderStep=ladderStep,readInput=readInput}\nend)()\n"
     status = 0
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / "physics.luau"

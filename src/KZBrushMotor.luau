@@ -10,11 +10,30 @@ end
 function M:half() return Vector3.new(16,self.height/2,16)*self.unit end
 function M:feet() return self.p-Vector3.new(0,self.height/2*self.unit,0) end
 function M:categorize(sliding)
+    self.groundNormal=nil
     if sliding then self.grounded=false;return end
     if self.v.Y>140*self.unit then self.grounded=false;return end
-    local hit=self.world:trace(self.p,Vector3.new(0,-2*self.unit,0),self:half())
-    self.grounded=not hit.startSolid and hit.fraction<1 and hit.normal and hit.normal.Y>=.7 or false
-    if self.grounded then self.p=hit.position end
+    local hit=self.world:trace(self.p,Vector3.new(0,-self.core.Profile.GroundProbe*self.unit,0),self:half())
+    self.grounded=not hit.startSolid and hit.fraction<1 and hit.normal and hit.normal.Y>=self.core.Profile.WalkableNormal or false
+    if self.grounded then self.p=hit.position;self.groundNormal=hit.normal end
+end
+function M:stayOnGround()
+    local profile=self.core.Profile
+    local up=self.world:trace(self.p,Vector3.new(0,profile.GroundProbe*self.unit,0),self:half())
+    if up.startSolid then return end
+    local endpoint=self.p-Vector3.new(0,profile.StepHeight*self.unit,0)
+    local down=self.world:trace(up.position,endpoint-up.position,self:half())
+    if not down.startSolid and down.fraction>0 and down.fraction<1 and down.normal
+        and down.normal.Y>=profile.WalkableNormal then self.p=down.position end
+end
+function M:slopeLanding(incoming,normal,planes)
+    if not normal or normal.Y<self.core.Profile.WalkableNormal or normal.Y>=.999 or incoming.Y>=0 then return nil end
+    local candidate=flat(self.core.clip(incoming,normal))
+    if candidate.Magnitude<=flat(incoming).Magnitude+1e-5 then return nil end
+    for _,n in ipairs(planes or {}) do
+        if n.Y<self.core.Profile.WalkableNormal and candidate:Dot(n)<-1e-7 then return nil end
+    end
+    return candidate
 end
 function M:posture(wanted)
     if self.duck==wanted then return true end
@@ -99,7 +118,9 @@ function M:tick(input,dt,zone)
     self:posture(not zone.forceUnduck and (zone.forceDuck or input.duck==true))
     self:categorize(zone.slide)
     if self.grounded and not wasGround then
-        self.lastLand=self.time;self.landingSpeed=flat(self.v).Magnitude/self.unit
+        local projected=not zone.slide and self:slopeLanding(self.v,self.groundNormal,self.contactPlanes)
+        if projected then self.v=Vector3.new(projected.X,self.v.Y,projected.Z) end
+        self.lastLand=self.time;self.landingVelocity=flat(self.v);self.landingSpeed=self.landingVelocity.Magnitude/self.unit
         self:observe(0,0,{})
     end
     if self.grounded then self.groundAge=wasGround and self.groundAge+dt or 0 else self.groundAge=0 end
@@ -128,9 +149,10 @@ function M:tick(input,dt,zone)
             if self.lastKind=='LJ' then kind='BH' elseif self.lastKind=='BH' or self.lastKind=='MBH' then kind='MBH' end
         end
         if chained then
-            local speed=flat(self.v).Magnitude/self.unit
-            local adjusted=self.core.perfSpeed(self.landingSpeed or speed,speed,self.core.preGain(self.pre),self.time-self.lastLand)
-            if speed>1e-6 then self.v=flat(self.v)*(adjusted/speed) end
+            local takeoff=flat(self.v)/self.unit
+            local landing=self.landingVelocity and self.landingVelocity/self.unit
+                or takeoff.Magnitude>1e-6 and takeoff.Unit*(self.landingSpeed or takeoff.Magnitude) or Vector3.zero
+            self.v=self.core.perfVelocity(landing,takeoff,self.core.preGain(self.pre),self.time-self.lastLand)*self.unit
         end
         self.v=self.v+Vector3.new(0,profile.JumpImpulse*self.unit*(zone.jump or 1)-gravity*.5*dt,0)
         self.grounded=false;self.weirdAt=nil;self.count=self.count+1;jumped=true
@@ -152,11 +174,7 @@ function M:tick(input,dt,zone)
     if zone.water and not waterJump then
         self:invalidate('Water');self.grounded=false
         -- WaterMove has its own acceleration: never add AirAccelerate first.
-        self.v=self.v*math.exp(-dt)
-        self.v=self.core.accelerate(self.v,input.wish,225*self.unit,10,dt)
-        local target=(input.jump and 100 or -60)*self.unit
-        self.v=Vector3.new(self.v.X,self.v.Y+math.max(-2250*self.unit*dt,math.min(2250*self.unit*dt,target-self.v.Y)),self.v.Z)
-        if self.v.Magnitude>225*self.unit then self.v=self.v.Unit*225*self.unit end
+        self.v=self.core.waterMove(self.v/self.unit,input.swim or input.wish,input.jump,dt)*self.unit
         -- Probe a low ledge and clearance above it at waist water level.
         -- Full hull movement still resolves the exit against real geometry.
         if zone.waterLevel==2 and input.wish.Magnitude>.1 and self.v.Y>-180*self.unit then
@@ -177,7 +195,8 @@ function M:tick(input,dt,zone)
     local preMoveVelocity=self.v
     local preMoveHorizontal=flat(self.v).Magnitude
     local contacts,stuck,activePlanes
-    self.p,self.v,contacts,stuck,activePlanes=self.world:move(self.p,self.v,self:half(),dt,self.grounded,18*self.unit)
+    self.p,self.v,contacts,stuck,activePlanes=self.world:move(self.p,self.v,self:half(),dt,self.grounded,profile.StepHeight*self.unit)
+    self.contactPlanes=activePlanes
     if stuck and self.world.recover then
         local recovered=self.world:recover(self.p,self:half(),2*self.unit)
         if recovered then
@@ -194,8 +213,11 @@ function M:tick(input,dt,zone)
         if n and n.Y>=.7 and n.Y<.999 and preMoveVelocity.Y<0 then landingNormal=n;break end
     end
     local landingVelocity=preMoveVelocity
+    if groundBefore and not jumped and not zone.slide and not zone.water and not stuck then self:stayOnGround() end
     local movedFeet=self:feet()
     self:categorize(zone.slide)
+    if not landingNormal and self.grounded and self.groundNormal and self.groundNormal.Y<.999
+        and preMoveVelocity.Y<0 then landingNormal=self.groundNormal end
     if self.grounded and not groundBefore and self.flight then
         local f=self.flight;local landing
         for _,contact in ipairs(contacts or {}) do
@@ -219,13 +241,11 @@ function M:tick(input,dt,zone)
         end
     end
     if self.grounded and not groundBefore and landingNormal and not zone.slide then
-        local projected=self.core.clip(landingVelocity,landingNormal)
-        local before=flat(landingVelocity).Magnitude
-        local after=flat(projected).Magnitude
-        if after>before+1e-5 then self.v=Vector3.new(projected.X,0,projected.Z) end
+        local projected=self:slopeLanding(landingVelocity,landingNormal,activePlanes)
+        if projected then self.v=projected end
     end
     if self.grounded and not groundBefore then
-        self.lastLand=self.time;self.landingSpeed=flat(self.v).Magnitude/self.unit
+        self.lastLand=self.time;self.landingVelocity=flat(self.v);self.landingSpeed=self.landingVelocity.Magnitude/self.unit
         if self.dropY then
             local drop=(self.dropY-self:feet().Y)/self.unit
             self.weirdAt=drop>2 and drop<=64 and self.time or nil;self.dropY=nil
@@ -276,6 +296,9 @@ function M:tick(input,dt,zone)
             if clear then self.v=candidate else self.v=self.core.clip(self.v,normal) end
         end
     end
+    -- Remaining half-gravity and sequential surf correction must not push
+    -- the final vector back into another active ramp or wall.
+    if not self.grounded then self.v=self.core.clipPlanes(self.v,normals) end
     -- Preserve contact-plane direction if a steep ramp correction reaches
     -- the per-axis velocity limit. Independent axis clamps can re-enter it.
     local maximum=math.max(math.abs(self.v.X),math.abs(self.v.Y),math.abs(self.v.Z))

@@ -11,7 +11,7 @@ import zipfile
 from rbxl_container import add_module_script, chunks, property_header, public_report, replace_source_arrays, validate
 
 ROOT = Path(__file__).resolve().parent
-PACKAGE_FILES = ("INSTALL_KZ_VARIETY_FIX.md", "PLAYTEST_RU.md", "BLOCKS_RU.md", "special_blocks_audit.json", "install_kz_variety_fix.py", "rbxl_container.py", "requirements.txt")
+PACKAGE_FILES = ("INSTALL_KZ_VARIETY_FIX.md", "PLAYTEST_RU.md", "BLOCKS_RU.md", "PHYSICS_RU.md", "special_blocks_audit.json", "install_kz_variety_fix.py", "rbxl_container.py", "requirements.txt")
 
 
 def verify_sources(data: bytes, compiler: Path | None = None) -> dict:

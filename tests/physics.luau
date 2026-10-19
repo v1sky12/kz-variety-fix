@@ -381,5 +381,97 @@ test('surf transitions remain stable at map scales and rotated headings',functio
         end
     end end end
 end)
+test('perf takeoff follows the stored landing vector after a ground turn',function()
+    local m=Motor.new(floorWorld(),Core,V(0,36,0),1)
+    m.grounded=true;m.lastLand=0;m.landingSpeed=450;m.landingVelocity=V(450,0,0);m.v=V(0,0,450)
+    m:tick(input(true),1/128,{})
+    assert(m.v.X>250);near(m.v.Z,0)
+end)
+test('grounded motion follows a fast walkable downhill slope',function()
+    local ramp=Collision.fromVertices({V(-200,-400,-100),V(400,-400,-100),V(-200,-400,100),V(400,-400,100),
+        V(-200,200,-100),V(400,-400,-100),V(-200,200,100),V(400,-400,100)},'downhill')
+    local w=Collision.world({ramp},64)
+    local m=Motor.new(w,Core,V(0,52.002,0),1);m.grounded=true;m.v=V(600,0,0)
+    m:tick(input(false),1/128,{})
+    assert(m.grounded,'lost ground while descending walkable ramp')
+    assert(m.p.Y<49,'did not follow the descending surface')
+end)
+test('jumping downhill is not pulled back to the floor',function()
+    local w=Collision.world({cube(-100,-10,-100,1000,0,100)},64)
+    local m=Motor.new(w,Core,V(0,36.001,0),1);m.grounded=true;m.v=V(600,0,0)
+    m:tick(input(true),1/128,{})
+    assert(not m.grounded and m:feet().Y>2)
+end)
+test('deep platform departure cannot snap down farther than step height',function()
+    local w=Collision.world({cube(-100,-10,-100,0,0,100),cube(-100,-100,-100,1000,-40,100)},64)
+    local m=Motor.new(w,Core,V(15.5,36.001,0),1);m.grounded=true;m.v=V(600,0,0)
+    m:tick(input(false),1/128,{})
+    assert(not m.grounded and m:feet().Y>-.1)
+end)
+test('water entry loses speed through friction rather than a hard speed cap',function()
+    local m=Motor.new(floorWorld(),Core,V(0,200,0),1);m.v=V(800,0,0)
+    m:tick(input(false),1/128,{water=true,waterLevel=3})
+    near(m.v.X,800*(1-1/128));assert(m.v.X>700)
+end)
+test('camera-pitched swimming can dive and rise without Space',function()
+    for _,direction in ipairs({-1,1}) do
+        local m=Motor.new(floorWorld(),Core,V(0,300,0),1)
+        for _=1,10 do m:tick({wish=V(1,0,0),swim=V(.8,.6*direction,0)},1/128,{water=true,waterLevel=3}) end
+        assert(m.v.Y*direction>80,'water ignored the view pitch')
+    end
+end)
+test('active surf crease remains outside both ramp planes after gravity',function()
+    local a,b=V(.8,.6,0),V(-.8,.6,0)
+    local w=floorWorld();w.trace=function(_,p,d) return {fraction=1,position=p+d} end
+    w.move=function(_,p) return p,V(0,0,800),{{normal=a},{normal=b}},false,{a,b} end
+    local m=Motor.new(w,Core,V(0,100,0),1);m.v=V(100,-20,800)
+    m:tick(input(false),1/128,{})
+    assert(m.v:Dot(a)>=-1e-6 and m.v:Dot(b)>=-1e-6,'gravity re-entered a ramp at the crease')
+    near(m.v.Y,0);near(m.v.X,0);near(m.v.Z,800)
+end)
+test('multi-plane projection preserves the allowed crease without adding energy',function()
+    local v=V(100,-20,800);local out=Core.clipPlanes(v,{V(-1,0,0),V(0,1,0)})
+    near(out.X,0);near(out.Y,0);near(out.Z,800);assert(out.Magnitude<=v.Magnitude)
+    near(Core.clipPlanes(v,{V(-1,0,0),V(0,1,0),V(0,0,-1)}).Magnitude,0)
+end)
+test('CKZ ladder side movement is not damped to one fifth',function()
+    local velocity=Core.ladderVelocity(V(100,0,-200),V(0,0,1))
+    near(velocity.X,100);near(velocity.Y,200)
+end)
+test('real landing records the velocity used by the next perf jump',function()
+    local w=Collision.world({cube(-1000,-20,-1000,1000,0,1000)},64)
+    local m=Motor.new(w,Core,V(0,55,0),1);m.v=V(400,-200,0)
+    for _=1,30 do m:tick(input(false),1/128,{});if m.grounded then break end end
+    assert(m.grounded and m.landingVelocity and m.landingVelocity.X>399)
+    m.v=V(0,0,400);m:tick(input(true),1/128,{})
+    assert(m.v.X>250 and math.abs(m.v.Z)<1e-6)
+end)
+test('slope landing within ground probe receives the CKZ downhill projection',function()
+    local vertices={}
+    for _,x in ipairs({-300,300}) do for _,z in ipairs({-100,100}) do
+        vertices[#vertices+1]=V(x,-1000,z);vertices[#vertices+1]=V(x,-x,z)
+    end end
+    local w=Collision.world({Collision.fromVertices(vertices,'slope landing')},64)
+    for _,height in ipairs({54,54.1}) do
+        local m=Motor.new(w,Core,V(0,height,0),1);m.v=V(100,-300,0)
+        m:tick(input(false),1/128,{})
+        assert(m.grounded and m.v.X>190,'ground probe omitted downhill slope fix')
+    end
+end)
+test('downhill landing boost cannot restore motion through a simultaneous wall',function()
+    local slope,wall=V(.6,.8,0),V(-1,0,0)
+    local w=floorWorld()
+    w.move=function(_,p)
+        return V(p.X,36,p.Z),Vector3.zero,{{normal=slope},{normal=wall}},false,{slope,wall}
+    end
+    local m=Motor.new(w,Core,V(0,40,0),1);m.v=V(100,-300,0)
+    m:tick(input(false),1/128,{})
+    assert(m.grounded);near(m.v.X,0)
+end)
+test('controlled swimming from rest stays within combined input speed',function()
+    local v=Vector3.zero
+    for _=1,200 do v=Core.waterMove(v,V(1,0,0),true,1/128) end
+    assert(v.Magnitude<=Core.Profile.WaterSpeed+1e-5 and v.Y>0 and v.X>0)
+end)
 print(string.format('RESULT %d passed, %d failed',passed,failed))
 assert(failed==0,'physics regressions failed')

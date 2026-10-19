@@ -67,6 +67,30 @@ test('long horizontal ladder permits lateral travel without vertical drift',func
     near(s.motor.p.X,200*100/128);near(s.motor.p.Y,136);assert(s.ladder==ladder)
     Data.ladderSurfaces=saved
 end)
+test('keyboard water input follows camera pitch while dry wish stays horizontal',function()
+    local s=client.session();local frame=workspace.CurrentCamera.CFrame
+    workspace.CurrentCamera.CFrame={LookVector=Vector3.new(.8,-.6,0)};keys.W=true
+    local input=client.readInput(s)
+    near(input.wish.Y,0);near(input.wish.Magnitude,1);near(input.swim.Y,-.6)
+    keys.W=false;workspace.CurrentCamera.CFrame=frame
+end)
+test('warp clears the cached landing direction before the next jump',function()
+    local s=client.session();s.motor.landingVelocity=Vector3.new(450,0,0)
+    Net.OnClientEvent:Fire('Warp',3,nil,true,Vector3.zero,CFrame.new(Vector3.new(0,36.001,0)))
+    assert(s.motor.landingVelocity==nil and s.motor.landingSpeed==nil)
+end)
+test('one second of movement produces the same fixed ticks at 30 60 144 and 240 FPS',function()
+    local original=workspace.CurrentCamera.CFrame
+    workspace.CurrentCamera.CFrame={LookVector=Vector3.new(0,0,-1)};keys.W=true
+    local reference
+    for _,fps in ipairs({30,60,144,240}) do
+        root.CFrame=CFrame.new(Vector3.new(0,36.001,0));client.setup(character)
+        for _=1,fps do RunService.PostSimulation:Fire(1/fps) end
+        local s=client.session();near(s.motor.time,1)
+        if reference then near((s.motor.p-reference).Magnitude,0) else reference=s.motor.p end
+    end
+    keys.W=false;workspace.CurrentCamera.CFrame=original
+end)
 test('character removal restores humanoid state and releases query resources',function()
     player.CharacterRemoving:Fire(character)
     assert(client.session()==nil);assert(humanoid.EvaluateStateMachine)

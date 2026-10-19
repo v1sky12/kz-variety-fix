@@ -1,6 +1,6 @@
 {
-  "sha256": "70794a4ffac2a7e00f29642193dda743cdf25bc59cd655f974ae3d706f6bc674",
-  "bytes": 2861306,
+  "sha256": "f80526b884b44d98d52461b2f08c48b7f21cfccac70d26cfe18d8182b9b2ce57",
+  "bytes": 2812522,
   "chunks": 1872,
   "classes": 93,
   "instances": 135677,
@@ -9,33 +9,38 @@
   "compiled_scripts": 429,
   "rojo_validated": true,
   "rojo_version": "Rojo 7.7.1",
-  "build": "2026-10-19-r3",
-  "release": "V7.18",
-  "previous_commit": "75c987ea5b1bffb55076e33dc826abf1701b6c7f",
-  "baseline_sha256": "62a4cee605d9a42a508c1c5023e8facc0fa0912900939b06e738f719c3cde08a",
-  "zip_sha256": "230258d92077a640254c81584bb6e7851210f85a4edad2dea413897a2cd85406",
+  "build": "2026-10-19-r4",
+  "release": "V7.19",
+  "previous_commit": "ea8fe9a04b83a997b035bc70a4bafe46ab11261f",
+  "baseline_sha256": "70794a4ffac2a7e00f29642193dda743cdf25bc59cd655f974ae3d706f6bc674",
+  "zip_sha256": "f243c5ff05c1b3e2c078ed741d2257be271573938141a6b5c213e541cc8983b9",
   "luau_commit": "9d7748a4f324213a18cb8283fa2a77c330225fa0",
   "test_results": {
-    "physics_scenarios": 46,
+    "physics_scenarios": 59,
     "block_scenarios": 22,
-    "client_scenarios": 10,
+    "client_scenarios": 13,
     "server_scenarios": 30,
     "container_and_installer": 15,
     "failed": 0
   },
   "changed_sources": [
     "StarterPlayer/StarterPlayerScripts/KZClassicMovement",
-    "ReplicatedStorage/KZClassic/KZBhop",
-    "ReplicatedStorage/KZClassic/KZMapData",
-    "ServerScriptService/KZClassicGameplay"
+    "ReplicatedStorage/KZClassic/KZClassicCore",
+    "ReplicatedStorage/KZClassic/KZBrushMotor"
   ],
-  "added_sources": [
-    "ReplicatedStorage/KZClassic/KZBlockController"
-  ],
+  "added_sources": [],
   "studio_run": false,
   "real_two_client_test": false,
   "geometry_and_backup_sources_preserved": true,
-  "physics_core_and_motor_sources_preserved": true,
+  "physics_updated": true,
+  "protected_script_sources": 426,
   "rojo_rejects_damaged_source_length": true,
-  "build_is_reproducible_and_idempotent": true
+  "build_is_reproducible_and_idempotent": true,
+  "constant_input_frame_rates_tested": [
+    30,
+    60,
+    144,
+    240
+  ],
+  "physics_ticks_per_second": 128
 }

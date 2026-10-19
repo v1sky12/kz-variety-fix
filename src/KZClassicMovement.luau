@@ -116,17 +116,20 @@ local function readInput(s)
     local side=(key('D') and 1 or 0)-(key('A') and 1 or 0)
     local axis=(key('W') and 1 or 0)-(key('S') and 1 or 0)
     local wish=forward*axis+right*side
+    local view=camera and camera.CFrame.LookVector or forward
+    local swim=view*axis+right*side
     return {wish=wish.Magnitude>.001 and wish.Unit or Vector3.zero,side=side,turn=turn,
+        swim=swim.Magnitude>.001 and swim.Unit or Vector3.zero,
         jump=key('Space') or (focused and not UIS:GetFocusedTextBox() and os.clock()<=queued),
         duck=key('LeftControl') or key('RightControl'),walk=key('LeftShift'),axis=axis,
-        view=camera and camera.CFrame.LookVector or forward,right=right,held=key('Space')}
+        view=view,right=right,held=key('Space')}
 end
 local function resetWarp(s,velocity,reason)
     local m=s.motor
     m.p=s.r.Position+Vector3.new(0,m.height/2*s.unit-s.standing,0)
     m.v=velocity or Vector3.zero;m.flight=nil;m.dropY=nil;m.weirdAt=nil;m.lastValid=false;m.lastKind=nil
-    m.waterJumpUntil=nil;m.pre=Core.newPre();m.lastLand=-math.huge;m.grounded=false;m.landingSpeed=nil;m.water=false
-    m.surfNormal=nil;m.surfPart=nil;m.groundAge=math.huge;s.pushes={}
+    m.waterJumpUntil=nil;m.pre=Core.newPre();m.lastLand=-math.huge;m.grounded=false;m.landingSpeed=nil;m.landingVelocity=nil;m.water=false
+    m.surfNormal=nil;m.surfPart=nil;m.groundNormal=nil;m.contactPlanes=nil;m.groundAge=math.huge;s.pushes={}
     s.resetCount=(s.resetCount or 0)+1
     s.r:SetAttribute('KZBrushResetCount',s.resetCount)
     s.r:SetAttribute('KZBrushLastResetReason',reason or 'StateReset')
@@ -145,7 +148,7 @@ local function ladderStep(s,input,dt,zone)
         local attached=previous==ladder
         if attached and input.jump then
             local takeoff,takeoffTime=m:feet(),m.time
-            s.ladder=nil;s.ladderUntil=m.time+.25;m.v=normal*270*s.unit;queued=-math.huge
+            s.ladder=nil;s.ladderUntil=m.time+.25;m.v=normal*Core.Profile.LadderJump*s.unit;queued=-math.huge
             m.time=m.time+dt
             m.p,m.v=s.world:slide(m.p,m.v,m:half(),dt)
             m:categorize()
@@ -155,7 +158,8 @@ local function ladderStep(s,input,dt,zone)
             return true,true
         elseif attached or into>.15 then
             s.ladder=ladder;m:invalidate('Ladder');m.flight=nil;m.grounded=false;m.waterJumpUntil=nil;m.surfNormal=nil;m.surfPart=nil
-            m.time=m.time+dt;m.v=Core.ladderVelocity(motion*(input.duck and 68 or 200),normal)*s.unit
+            m.contactPlanes=nil;m.groundNormal=nil;m.landingVelocity=nil;m.landingSpeed=nil
+            m.time=m.time+dt;m.v=Core.ladderVelocity(motion*(input.duck and Core.Profile.LadderDuckSpeed or Core.Profile.LadderSpeed),normal)*s.unit
             local top=ladder.bounds[2][3]
             if m.v.Y>0 and feet.Z+m.v.Y/s.unit*dt>=top-.5 then
                 local rise=math.max(0,top+1-feet.Z)*s.unit
@@ -186,7 +190,7 @@ local function ladderStep(s,input,dt,zone)
 end
 local function telemetry(s)
     local m,r=s.motor,s.r
-    r:SetAttribute('KZMovementBuild','2026-10-19-r3')
+    r:SetAttribute('KZMovementBuild','2026-10-19-r4')
     r:SetAttribute('KZSeamRecoveries',m.recoveries or 0)
     r:SetAttribute('KZSurfing',s.ladder==nil and m.surfNormal~=nil)
     r:SetAttribute('KZSurfNormal',s.ladder==nil and m.surfNormal or nil)
@@ -266,7 +270,9 @@ connect(RunService.PostSimulation,function(dt)
         local input=readInput(s)
         s.accumulator=s.accumulator+math.min(dt,.25)
         local ticks=0
-        while s.accumulator>=1/128 and ticks<32 do
+        -- Do not lose a physics tick to rounding at render rates whose frame
+        -- duration cannot be represented exactly (30/60/144/240 FPS).
+        while s.accumulator+1e-10>=1/128 and ticks<32 do
             local zone=Data.modifiers(s.map,Data.sourcePoint(s.map,s.motor:feet()),s.motor.height,s.mapState)
             s.zoneSlide=zone.slide==true
             if #s.pushes>0 then
@@ -288,7 +294,7 @@ connect(RunService.PostSimulation,function(dt)
                 s.nextLadder=s.motor.time+.2
             end
             s.jumpHeld=input.held
-            s.accumulator=s.accumulator-1/128;ticks=ticks+1
+            s.accumulator=math.max(0,s.accumulator-1/128);ticks=ticks+1
         end
         local position=s.motor:feet()+Vector3.new(0,s.standing,0)
         s.r.CFrame=CFrame.lookAt(position,position+s.lastForward)
