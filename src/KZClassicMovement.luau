@@ -142,15 +142,16 @@ local function ladderStep(s,input,dt,zone)
         local motion=input.view*input.axis+input.right*input.side
         local into=-flat(motion):Dot(normal)
         local attached=previous==ladder
-        if attached and input.jump and not s.jumpHeld then
+        if attached and input.jump then
+            local takeoff,takeoffTime=m:feet(),m.time
             s.ladder=nil;s.ladderUntil=m.time+.25;m.v=normal*270*s.unit;queued=-math.huge
             m.time=m.time+dt
             m.p,m.v=s.world:slide(m.p,m.v,m:half(),dt)
             m:categorize()
             local a,b=ladder.bounds[1],ladder.bounds[2]
             local y=Data.worldPoint(s.map,{(a[1]+b[1])/2,(a[2]+b[2])/2,b[3]}).Y
-            if not m.grounded then m:begin('LAJ',y) end
-            return true
+            if not m.grounded then m:begin('LAJ',y);m.flight.start=takeoff;m.flight.time=takeoffTime end
+            return true,true
         elseif attached or into>.15 then
             s.ladder=ladder;m:invalidate('Ladder');m.flight=nil;m.grounded=false;m.waterJumpUntil=nil;m.surfNormal=nil;m.surfPart=nil
             m.time=m.time+dt;m.v=Core.ladderVelocity(motion*(input.duck and 68 or 200),normal)*s.unit
@@ -184,7 +185,7 @@ local function ladderStep(s,input,dt,zone)
 end
 local function telemetry(s)
     local m,r=s.motor,s.r
-    r:SetAttribute('KZMovementBuild','2026-10-19')
+    r:SetAttribute('KZMovementBuild','2026-10-19-r2')
     r:SetAttribute('KZSeamRecoveries',m.recoveries or 0)
     r:SetAttribute('KZSurfing',s.ladder==nil and m.surfNormal~=nil)
     r:SetAttribute('KZSurfNormal',s.ladder==nil and m.surfNormal or nil)
@@ -271,7 +272,8 @@ connect(RunService.PostSimulation,function(dt)
                 s.motor.v=Data.applyPushes(s.map,s.motor.v,s.pushes)
                 s.motor:invalidate('Push');s.pushes={}
             end
-            local climbing=ladderStep(s,input,1/128,zone)
+            local climbing,ladderJump=ladderStep(s,input,1/128,zone)
+            if ladderJump then input.jump=input.held end
             local jumped,stuck=false,false
             if not climbing then jumped,stuck=s.motor:tick(input,1/128,zone) end
             if stuck then error('Hull starts inside a brush') end
@@ -294,7 +296,7 @@ connect(RunService.PostSimulation,function(dt)
         if os.clock()>=s.nextMotion then
             s.nextMotion=os.clock()+.05;s.motionSequence+=1
             Net:FireServer('Motion',{character=s.character,teleportSerial=s.serial,sequence=s.motionSequence,
-                feet=Data.sourcePoint(s.map,s.motor:feet()),velocity=s.motor.v})
+                feet=Data.sourcePoint(s.map,s.motor:feet()),velocity=s.motor.v,view=input.view,height=s.motor.height})
         end
     end)
     if not ok then fallback(err) end

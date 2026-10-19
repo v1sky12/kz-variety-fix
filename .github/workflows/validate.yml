@@ -18,4 +18,18 @@ jobs:
           make -C /tmp/luau config=release luau luau-compile -j2
       - run: python -B -m unittest discover -s tests -p 'test_*.py' -v
       - run: python -B run_luau_tests.py --luau /tmp/luau/luau
-      - run: python -B build_place.py --check --luau-compile /tmp/luau/luau-compile
+      - name: Install pinned independent RBXL reader
+        run: |
+          python - <<'PY'
+          import hashlib, io, pathlib, urllib.request, zipfile
+          url = 'https://github.com/rojo-rbx/rojo/releases/download/v7.7.1/rojo-7.7.1-linux-x86_64.zip'
+          data = urllib.request.urlopen(url).read()
+          assert hashlib.sha256(data).hexdigest() == '00feb4fa0829a1dd72b49df2639da519a352bfe13cadcd83969e2ba2bb5693c4'
+          with zipfile.ZipFile(io.BytesIO(data)) as archive:
+              assert archive.testzip() is None
+              path = pathlib.Path('/tmp/kz-rojo/rojo')
+              path.parent.mkdir(parents=True, exist_ok=True)
+              path.write_bytes(archive.read('rojo'))
+              path.chmod(0o755)
+          PY
+      - run: python -B build_place.py --check --luau-compile /tmp/luau/luau-compile --rojo /tmp/kz-rojo/rojo

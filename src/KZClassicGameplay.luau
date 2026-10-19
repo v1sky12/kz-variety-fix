@@ -20,6 +20,9 @@ local function connect(event, fn)
     local c = event:Connect(fn); connections[#connections + 1] = c; return c
 end
 local function number(v, fallback) return tonumber(v) or fallback end
+local function validView(v)
+    return typeof(v)=="Vector3" and v.X==v.X and v.Y==v.Y and v.Z==v.Z and v.Magnitude>=.9 and v.Magnitude<=1.1
+end
 local function now() return workspace:GetServerTimeNow() end
 local function attr(player, name, value) player:SetAttribute("KZ" .. name, value) end
 local function message(player, text) Net:FireClient(player, "Message", text) end
@@ -43,13 +46,20 @@ local function grounded(player)
     params.FilterDescendantsInstances = {map}
     params.RespectCanCollide = true
     params.CollisionGroup = r.CollisionGroup
-    local hit = workspace:Raycast(r.Position, Vector3.new(0, -(h.HipHeight + r.Size.Y / 2 + .18), 0), params)
+    -- Match the motor's 32-unit footprint, 2-unit ground probe and walkable
+    -- normal. A centre ray incorrectly reports air when standing on an edge.
+    local height=motion and now()-motion.received<.3 and motion.height or (state and state.crouched and 54 or 72)
+    local feet=r.Position-Vector3.new(0,h.HipHeight+r.Size.Y/2,0)
+    local center=feet+Vector3.new(0,(height/2+.05)*unit,0)
+    local hit=workspace:Blockcast(CFrame.new(center),Vector3.new(31.998,height-.002,31.998)*unit,
+        Vector3.new(0,-2.05*unit,0),params)
     return hit and hit.Normal.Y >= .7 or false
 end
-local function resetCheckpoints(player, s)
-    s.checkpoints = {}; s.index = 0; s.teleports = 0
+local function resetCheckpoints(player, s, resetTeleports)
+    s.checkpoints = {}; s.index = 0
+    if resetTeleports~=false then s.teleports=0 end
     attr(player, "CheckpointIndex", 0); attr(player, "CheckpointCount", 0)
-    attr(player, "TeleportCount", 0)
+    attr(player, "TeleportCount", s.teleports)
 end
 local function resetMapState(s)
     s.attributes, s.disabled, s.fired, s.inside, s.touches, s.pending = {}, {}, {}, {}, {}, {}
@@ -68,23 +78,23 @@ local function publishRecords()
         for rank, entry in ipairs(sorted) do if entry.id == player.UserId then attr(player, "Rank", rank) end end
     end
 end
-local function startRun(player, s)
+local function startRun(player, s, crossingTime)
     if s.spectating then return end
-    s.start = now(); s.elapsed = 0; s.runState = "Running"; s.runId = s.runId + 1
+    s.start = crossingTime or now(); s.elapsed = 0; s.runState = "Running"; s.runId = s.runId + 1
     resetCheckpoints(player, s)
     Bhop.reset(s);s.pushPending={};s.pushPendingById={};s.pushTimes={}; s.invalid = false
     attr(player, "RunId", s.runId); attr(player, "RunState", "Running")
     attr(player, "RunStartTime", s.start); attr(player, "RunElapsed", 0)
     attr(player, "Stage", 1); attr(player, "RunCategory", "PRO")
 end
-local function stopRun(player, s, status)
-    if s.runState == "Running" then s.elapsed = now() - s.start end
+local function stopRun(player, s, status, crossingTime)
+    if s.runState == "Running" then s.elapsed = math.max(0,(crossingTime or now()) - s.start) end
     s.runState = status
     attr(player, "RunState", status); attr(player, "RunElapsed", s.elapsed)
 end
-local function finishRun(player, s)
+local function finishRun(player, s, crossingTime)
     if s.runState ~= "Running" then return end
-    stopRun(player, s, "Finished")
+    stopRun(player, s, "Finished",crossingTime)
     local category = s.teleports == 0 and "PRO" or "TP"
     attr(player, "RunCategory", category)
     message(player, string.format("%s: %.3f s · CP %d · TP %d", category, s.elapsed, #s.checkpoints, s.teleports))
@@ -215,7 +225,7 @@ local function applyOutput(player, s, connection)
         -- Arbitrary server console commands from the source map are not executed.
     end
 end
-local function outputs(player, s, e, event)
+local function outputs(player, s, e, event, crossingTime)
     for i, connection in ipairs(e.connections or {}) do
         if connection.outputName == event then
             local key = e.id .. ":" .. i
@@ -223,7 +233,9 @@ local function outputs(player, s, e, event)
             if limit < 0 or (s.fired[key] or 0) < limit then
                 s.fired[key] = (s.fired[key] or 0) + 1
                 s.outputSequence=(s.outputSequence or 0)+1
-                s.pending[#s.pending + 1] = {due = now() + number(connection.delay, 0), connection = connection,order=s.outputSequence}
+                local delay=number(connection.delay,0)
+                if delay<=0 then applyOutput(player,s,connection)
+                else s.pending[#s.pending + 1] = {due = (crossingTime or now()) + delay, connection = connection,order=s.outputSequence} end
             end
         end
     end
@@ -289,8 +301,11 @@ local function action(player, name, payload)
         local reported=Data.worldPoint(map,{f.X,f.Y,f.Z})
         local actual=r.Position-Vector3.new(0,h.HipHeight+r.Size.Y/2,0)
         if (reported-actual).Magnitude>256*unit or time<(s.lastMotionAt or -math.huge)+.025 then return end
+        local view=payload.view
+        if view~=nil and not validView(view) then return end
+        if payload.height~=nil and payload.height~=54 and payload.height~=72 then return end
         if not s.motion then s.sentRevision=nil end
-        s.motion={velocity=v,received=time};s.motionSequence=payload.sequence;s.lastMotionAt=time
+        s.motion={velocity=v,received=time,view=view,height=payload.height or (s.crouched and 54 or 72)};s.motionSequence=payload.sequence;s.lastMotionAt=time
         return
     end
     if name == "Crouch" then
@@ -347,7 +362,11 @@ local function action(player, name, payload)
         if mods.disableCheckpoints or not grounded(player) then message(player, "Checkpoint requires solid ground"); return end
         local source = Data.feetSource(map, r, h)
         if #s.checkpoints >= 256 then message(player, "Checkpoint limit: 256"); return end
-        s.checkpoints[#s.checkpoints + 1] = {source = {source.X, source.Y, source.Z}, crouched = s.crouched}
+        local view=s.motion and time-s.motion.received<.3 and s.motion.view or r.CFrame.LookVector
+        if type(payload)=="table" and validView(payload.view) then view=payload.view end
+        local look=Data.sourceVector(map,view).Unit
+        local angles={math.deg(-math.asin(math.clamp(look.Z,-1,1))),math.deg(math.atan2(look.Y,look.X)),0}
+        s.checkpoints[#s.checkpoints + 1] = {source = {source.X, source.Y, source.Z}, crouched = s.crouched,angles=angles}
         s.index = #s.checkpoints
         attr(player, "CheckpointCount", #s.checkpoints); attr(player, "CheckpointIndex", s.index)
         message(player, "Checkpoint " .. s.index)
@@ -360,7 +379,7 @@ local function action(player, name, payload)
             s.crouchWanted = cp.crouched
             -- Shrink before warping into a duck CP; test standing at the destination.
             if cp.crouched then setCrouch(player, s, true) end
-            moveTo(player, s, cp.source, nil, true, true)
+            moveTo(player, s, cp.source, cp.angles, true, true)
             if not cp.crouched then setCrouch(player, s, false) end
         end
         attr(player, "CheckpointIndex", s.index)
@@ -470,6 +489,44 @@ for alias, name in pairs(commands) do
         if player then action(player, name) end
     end)
 end
+-- Build boundary events first, then process them in travelled order. A fast
+-- player can leave start, enter finish and cross a teleport in one Heartbeat.
+local function zoneEvents(s,feet,height,span,time)
+    local events={}
+    local canSweep=s.previousFeet and (feet-s.previousFeet).Magnitude<=6000*math.min(span,.25)+128
+    local function add(e,phase,fraction,duration,inside,order)
+        events[#events+1]={entity=e,phase=phase,time=time-span*(1-fraction),duration=duration,inside=inside,order=order}
+    end
+    for order,e in ipairs(Data.zones) do
+        local kind=e.triggerType
+        local bhop=kind==11 or kind==12 or kind==13
+        local bounds=e.class=="func_water" and Data.waterBounds(map,e) or e.bounds
+        local inside=bhop and Data.bhopIntersects(e,feet,height) or not bhop and Data.intersects(bounds,feet,height)
+        local enter,leave
+        if canSweep and not bhop then enter,leave=Data.sweepIntersects(bounds,s.previousFeet,feet,height) end
+        local passed=not inside and enter~=nil
+        if inside or passed then
+            local first=enter or (s.inside[e.id] and 0 or 1)
+            local last=inside and 1 or leave
+            local duration=span*math.max(0,last-first)
+            if not s.inside[e.id] then add(e,1,first,0,inside,order) end
+            local contact=bhop and 1 or first
+            if kind==10 then
+                local start=s.touches[e.id] or time-span*(1-first)
+                contact=span>0 and math.max(first,(start+math.max(0,number(e.properties.timer_teleport_delay,0))-(time-span))/span) or 1
+            end
+            if contact<=last+1e-9 then add(e,2,math.min(contact,last),duration,inside,order)
+            elseif inside then add(e,2,1,duration,true,order) end
+            if passed then add(e,3,last,0,false,order) end
+        elseif s.inside[e.id] then add(e,3,leave or 1,0,false,order) end
+    end
+    table.sort(events,function(a,b)
+        if a.time~=b.time then return a.time<b.time end
+        if a.phase~=b.phase then return a.phase<b.phase end
+        return a.order<b.order
+    end)
+    return events
+end
 local tickAccumulator = 0
 connect(RunService.Heartbeat, function(dt)
     tickAccumulator = tickAccumulator + dt
@@ -482,7 +539,8 @@ connect(RunService.Heartbeat, function(dt)
         if r and not s.spectating then
             local mods=Data.modifiers(map,Data.feetSource(map,r,h),s.crouched and 54 or 72,s)
             if s.crouchWanted ~= nil then setCrouch(player, s, not mods.forceUnduck and (mods.forceDuck or s.crouchWanted)) end
-            local feet = Data.feetSource(map, r, h); local height = s.crouched and 54 or 72
+            local feet = Data.feetSource(map, r, h)
+            local height=s.motion and time-s.motion.received<.3 and s.motion.height or (s.crouched and 54 or 72)
             local onGround = grounded(player)
             attr(player, "ServerGrounded", onGround)
             local velocity=s.motion and time-s.motion.received<.3 and s.motion.velocity or r.AssemblyLinearVelocity
@@ -498,70 +556,61 @@ connect(RunService.Heartbeat, function(dt)
             if not onGround then s.groundSince = nil end
             if not s.groundSince and onGround then s.groundSince = time end
             local touched, warped, bhopGround = {}, false, false
-            for _, e in ipairs(Data.zones) do
-                local eligible = Data.active(e, s) and Data.filterPass(e.properties.filtername, s)
-                local bhop=e.triggerType==11 or e.triggerType==12 or e.triggerType==13
-                local bounds=e.class=="func_water" and Data.waterBounds(map,e) or e.bounds
-                local inside = eligible and (bhop and Data.bhopIntersects(e,feet,height)
-                    or not bhop and Data.intersects(bounds,feet,height))
-                local enter,leave
-                if eligible and not bhop and s.previousFeet
-                    and (feet-s.previousFeet).Magnitude<=6000*math.min(elapsedTick,.25)+128 then
-                    enter,leave=Data.sweepIntersects(bounds,s.previousFeet,feet,height)
+            local span=s.previousFeet and elapsedTick or 0
+            local events=zoneEvents(s,feet,height,span,time)
+            for _,event in ipairs(events) do
+                local e=event.entity;local kind=e.triggerType;local crossingTime=event.time
+                -- Delayed map I/O due before a boundary must affect that boundary.
+                table.sort(s.pending,function(a,b) return a.due==b.due and a.order<b.order or a.due<b.due end)
+                while s.pending[1] and s.pending[1].due<=crossingTime do
+                    applyOutput(player,s,table.remove(s.pending,1).connection)
                 end
-                local passed=not inside and enter~=nil
-                if inside or passed then
-                    touched[e.id] = true
-                    if not s.inside[e.id] then
-                        s.touches[e.id] = time-(enter and (1-enter)*elapsedTick or 0); outputs(player, s, e, "OnStartTouch")
-                        if e.triggerType == 5 then stopRun(player, s, "Ready"); resetCheckpoints(player, s)
-                        elseif e.triggerType == 6 then finishRun(player, s)
-                        elseif e.triggerType == 2 then resetCheckpoints(player, s)
-                        elseif e.triggerType == 3 then Bhop.reset(s)
-                        elseif e.triggerType == 9 then attr(player, "Stage", number(e.properties.timer_zone_stage_number, 1))
-                        elseif e.triggerType == 14 then push(player, s, e, "start_touch") end
-                    end
-                    local delay = number(e.properties.timer_teleport_delay, 0)
-                    local kind = e.triggerType
-                    local triggerWarp = e.class == "trigger_teleport" or kind == 10
-                    if kind == 11 or kind == 12 or kind == 13 then
-                        bhopGround=bhopGround or onGround
-                        triggerWarp = onGround and not departurePending and Bhop.land(s,e.id,kind,time,delay)
-                        if s.wasGrounded and not onGround and not departureAcknowledged
-                            and time>=(s.bhopIgnoreUntil or 0) then
-                            triggerWarp=Bhop.takeoff(s,e.id,kind,time)
-                            if not triggerWarp then s.bhopServerTakeoff={id=e.id,time=time} end
-                        end
-                    elseif kind == 10 then
-                        local contactEnd=passed and time-(1-leave)*elapsedTick or time
-                        triggerWarp = contactEnd - (s.touches[e.id] or time) >= delay
-                    end
-                    if triggerWarp and teleportEntity(player, s, e) then warped = true; break end
-                    if kind == 14 then push(player, s, e, "touch") end
-                    if e.class == "trigger_push" then
-                        local pitch, yaw = (e.properties.pushdir or "0 0 0"):match("([^ ]+) +([^ ]+)")
-                        pitch, yaw = math.rad(number(pitch, 0)), math.rad(number(yaw, 0))
-                        local speed = number(e.properties.speed, 100)
-                        local v = Data.worldVector(map, {math.cos(pitch) * math.cos(yaw) * speed * elapsedTick,
-                            math.cos(pitch) * math.sin(yaw) * speed * elapsedTick, -math.sin(pitch) * speed * elapsedTick})
-                        Net:FireClient(player, "Push", v, {false, false, false}, s.teleportSerial)
-                    elseif e.class == "func_conveyor" and onGround then
-                        local _, yaw = (e.properties.movedir or "0 0 0"):match("([^ ]+) +([^ ]+)")
-                        yaw = math.rad(number(yaw, 0))
-                        local speed = number(e.properties.speed, 0)
-                        local v = Data.worldVector(map, {math.cos(yaw) * speed * elapsedTick, math.sin(yaw) * speed * elapsedTick, 0})
-                        Net:FireClient(player, "Push", v, {false, false, false}, s.teleportSerial)
-                    end
-                    if passed then
-                        outputs(player,s,e,"OnEndTouch");touched[e.id]=nil;s.touches[e.id]=nil
-                        if kind==5 then startRun(player,s)
+                local eligible=Data.active(e,s) and Data.filterPass(e.properties.filtername,s)
+                if event.phase==3 then
+                    if s.touches[e.id] then
+                        outputs(player,s,e,"OnEndTouch",crossingTime)
+                        if kind==5 then startRun(player,s,crossingTime)
                         elseif kind==14 then push(player,s,e,"end_touch") end
                     end
-                elseif s.inside[e.id] then
-                    outputs(player, s, e, "OnEndTouch")
-                    if e.triggerType == 5 then startRun(player, s)
-                    elseif e.triggerType == 14 then push(player, s, e, "end_touch") end
-                    s.touches[e.id] = nil
+                    s.touches[e.id]=nil;touched[e.id]=nil
+                elseif eligible then
+                    if event.inside then touched[e.id]=true end
+                    if event.phase==1 then
+                        s.touches[e.id]=crossingTime;outputs(player,s,e,"OnStartTouch",crossingTime)
+                        if kind==5 then stopRun(player,s,"Ready",crossingTime);resetCheckpoints(player,s)
+                        elseif kind==6 then finishRun(player,s,crossingTime)
+                        elseif kind==2 and s.runState=="Running" then resetCheckpoints(player,s,false)
+                        elseif kind==3 then Bhop.reset(s)
+                        elseif kind==9 then attr(player,"Stage",number(e.properties.timer_zone_stage_number,1))
+                        elseif kind==14 then push(player,s,e,"start_touch") end
+                    else
+                        local delay=number(e.properties.timer_teleport_delay,0)
+                        local triggerWarp=e.class=="trigger_teleport" or kind==10
+                        if kind==11 or kind==12 or kind==13 then
+                            bhopGround=bhopGround or onGround
+                            triggerWarp=onGround and not departurePending and Bhop.land(s,e.id,kind,time,delay)
+                            if s.wasGrounded and not onGround and not departureAcknowledged and time>=(s.bhopIgnoreUntil or 0) then
+                                triggerWarp=Bhop.takeoff(s,e.id,kind,time)
+                                if not triggerWarp then s.bhopServerTakeoff={id=e.id,time=time} end
+                            end
+                        elseif kind==10 then
+                            triggerWarp=s.touches[e.id]~=nil and crossingTime-s.touches[e.id]+1e-9>=math.max(0,delay)
+                        end
+                        if triggerWarp and teleportEntity(player,s,e) then warped=true;break end
+                        if kind==14 then push(player,s,e,"touch") end
+                        if e.class=="trigger_push" then
+                            local pitch,yaw=(e.properties.pushdir or "0 0 0"):match("([^ ]+) +([^ ]+)")
+                            pitch,yaw=math.rad(number(pitch,0)),math.rad(number(yaw,0))
+                            local speed=number(e.properties.speed,100)*event.duration
+                            local v=Data.worldVector(map,{math.cos(pitch)*math.cos(yaw)*speed,math.cos(pitch)*math.sin(yaw)*speed,-math.sin(pitch)*speed})
+                            Net:FireClient(player,"Push",v,{false,false,false},s.teleportSerial)
+                        elseif e.class=="func_conveyor" and onGround then
+                            local _,yaw=(e.properties.movedir or "0 0 0"):match("([^ ]+) +([^ ]+)")
+                            yaw=math.rad(number(yaw,0))
+                            local speed=number(e.properties.speed,0)*event.duration
+                            Net:FireClient(player,"Push",Data.worldVector(map,{math.cos(yaw)*speed,math.sin(yaw)*speed,0}),{false,false,false},s.teleportSerial)
+                        end
+                    end
                 end
             end
             if not warped then
@@ -620,4 +669,4 @@ connect(script.Destroying, function()
         if command:IsA("TextChatCommand") and command.Name:sub(1, 10) == "KZClassic_" then command:Destroy() end
     end
 end)
-print("KZ Classic V7.16 gameplay ready: original map zones, Source-sized hull, CP/TP, session PRO/TP records")
+print("KZ Classic V7.17 gameplay ready: ordered swept zones, Source ground footprint, CP view, session PRO/TP records")

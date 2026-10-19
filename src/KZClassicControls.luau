@@ -51,7 +51,10 @@ local bindings = {
 }
 connect(UIS.InputBegan, function(input, processed)
     if processed or UIS:GetFocusedTextBox() then return end
-    if bindings[input.KeyCode] then Net:FireServer(bindings[input.KeyCode])
+    if bindings[input.KeyCode] then
+        local camera=workspace.CurrentCamera
+        local payload=bindings[input.KeyCode]=="Checkpoint" and camera and {view=camera.CFrame.LookVector} or nil
+        Net:FireServer(bindings[input.KeyCode],payload)
     elseif input.KeyCode == Enum.KeyCode.B then cycleSpectator()
     elseif input.KeyCode == Enum.KeyCode.N then Net:FireServer("Spectate", 0)
     elseif input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then Net:FireServer("Crouch", true)

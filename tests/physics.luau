@@ -311,5 +311,75 @@ test('walking off real platform preserves WJ classification on next takeoff',fun
     m:tick({wish=V(1,0,0),side=0,jump=true},1/128,{})
     assert(m.flight and m.flight.kind=='WJ' and m.flight.valid)
 end)
+test('slide spends remaining time after five separate ramp contacts',function()
+    local w=Collision.world({},64);local calls=0
+    function w:trace(p,d)
+        calls+=1
+        local f=calls<=5 and .2 or 1
+        return {fraction=f,position=p+d*f,normal=V(0,1,0)}
+    end
+    local p,v=w:slide(V(0,0,0),V(100,0,0),V(1,1,1),.1)
+    near(p.X,10);near(v.X,100)
+end)
+test('repeated zero-fraction plane separates without injecting velocity',function()
+    local w=Collision.world({},64)
+    function w:trace(p,d)
+        if p.Y<.001 and d.Magnitude>.01 then return {fraction=0,position=p,normal=V(0,1,0)} end
+        return {fraction=1,position=p+d}
+    end
+    local p,v,_,stuck=w:slide(V(0,0,0),V(100,0,0),V(1,1,1),.1)
+    assert(not stuck);near(p.X,10);near(v.X,100);near(v.Y,0)
+    assert(p.Y<.01,'separation exceeded collision skin')
+end)
+test('primitive cache reuses respawn geometry and invalidates edited colliders',function()
+    local part={Size=V(10,10,10),CFrame=CFrame.new(),Shape='Block'}
+    function part:IsA(n) return n=='Part' end
+    local a=Collision.fromPart(part);assert(Collision.fromPart(part)==a)
+    part.Size=V(20,10,10);local b=Collision.fromPart(part);assert(b~=a);near(b.hi.X,10)
+    part.CFrame=CFrame.new(V(100,0,0));local c=Collision.fromPart(part);assert(c~=b);near(c.lo.X,90)
+end)
+test('real brushes retain surf motion through changing ramp angles',function()
+    local function ramp(a,b,nx)
+        local vertices={}
+        for _,x in ipairs({a,b}) do for _,z in ipairs({-200,200}) do
+            vertices[#vertices+1]=V(x,-1000,z)
+            vertices[#vertices+1]=V(x,-(nx*x+.8*z)/.6,z)
+        end end
+        return Collision.fromVertices(vertices,'transition')
+    end
+    for _,slope in ipairs({-.08,.08}) do
+        local w=Collision.world({ramp(-500,0,0),ramp(0,500,slope)},64)
+        local m=Motor.new(w,Core,V(-80,34.402/.6,0),1);m.v=V(800,0,0)
+        for tick=1,40 do
+            local _,stuck=m:tick(input(false),1/128,{})
+            assert(not stuck,'ramp transition entered solid')
+            assert(math.sqrt(m.v.X*m.v.X+m.v.Z*m.v.Z)>700,'ramp transition discarded speed slope='..slope..' tick='..tick..' p='..tostring(m.p)..' v='..tostring(m.v)..' normal='..tostring(m.surfNormal))
+        end
+        assert(m.p.X>0)
+    end
+end)
+test('surf transitions remain stable at map scales and rotated headings',function()
+    for _,unit in ipairs({.075,.1,1}) do for _,yaw in ipairs({0,.37,1.2}) do for _,slope in ipairs({-.08,.08}) do
+        local rotation=CFrame.new(Vector3.zero,yaw)
+        local function ramp(a,b,nx)
+            local vertices={}
+            for _,x in ipairs({a,b}) do for _,z in ipairs({-300,300}) do
+                vertices[#vertices+1]=rotation:VectorToWorldSpace(V(x,-1000,z))*unit
+                vertices[#vertices+1]=rotation:VectorToWorldSpace(V(x,-(nx*x+.8*z)/.6,z))*unit
+            end end
+            return Collision.fromVertices(vertices,'rotated transition')
+        end
+        local n=rotation:VectorToWorldSpace(V(0,.6,.8))
+        local startY=(math.abs(n.X)*16+n.Y*36+math.abs(n.Z)*16)/n.Y+.03
+        local w=Collision.world({ramp(-500,0,0),ramp(0,500,slope)},8)
+        local m=Motor.new(w,Core,rotation:VectorToWorldSpace(V(-80,startY,0))*unit,unit)
+        m.v=rotation:VectorToWorldSpace(V(800,0,0))*unit
+        for tick=1,40 do
+            local _,stuck=m:tick(input(false),1/128,{})
+            assert(not stuck,'scaled transition entered solid')
+            assert(math.sqrt(m.v.X*m.v.X+m.v.Z*m.v.Z)/unit>700,'scaled transition lost speed '..unit..' '..yaw..' '..slope..' '..tick)
+        end
+    end end end
+end)
 print(string.format('RESULT %d passed, %d failed',passed,failed))
 assert(failed==0,'physics regressions failed')

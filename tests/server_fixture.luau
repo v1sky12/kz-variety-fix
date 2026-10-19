@@ -29,12 +29,19 @@ function serverMap:GetAttribute(n) if n=='KZStudsPerCSUnit' then return 1 end en
 function serverMap:FindFirstChild() return nil end
 function serverMap:IsA(name) return name=='Model' end
 local workspace={Gravity=800}
+local groundBounds
 function workspace:GetServerTimeNow() return serverClock end
 function workspace:FindFirstChild(name) if name:sub(1,10)=='KZ_Variety' then return serverMap end end
 function workspace:WaitForChild() return serverMap end
 function workspace:Raycast(position,direction,params)
     assert(params.FilterDescendantsInstances[1]==serverMap,'ground queries must exclude other players')
     if position.Y+direction.Y<=0 and position.Y>=0 then return {Normal=Vector3.new(0,1,0)} end
+end
+function workspace:Blockcast(frame,size,direction,params)
+    assert(params.FilterDescendantsInstances[1]==serverMap,'ground queries must exclude other players')
+    local bottom=frame.Position.Y-size.Y/2
+    local overlaps=not groundBounds or (frame.Position.X+size.X/2>=groundBounds[1] and frame.Position.X-size.X/2<=groundBounds[2])
+    if overlaps and bottom>=0 and bottom+direction.Y<=0 then return {Normal=Vector3.new(0,1,0)} end
 end
 local RunService={Heartbeat=signal()}
 local TextChatService={}

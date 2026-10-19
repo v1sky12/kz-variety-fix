@@ -74,16 +74,41 @@ def make_zip(data: bytes, path: Path) -> None:
             raise ValueError("ZIP verification failed")
 
 
+def verify_rojo(data: bytes, executable: Path) -> str:
+    """Independently deserialize the full place with Rojo's rbx_binary reader."""
+    version = subprocess.check_output([str(executable.resolve()), "--version"], text=True).strip()
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        (root / "src").mkdir()
+        project = root / "default.project.json"
+        project.write_text(json.dumps({"name": "KZFormatCheck", "syncbackRules": {"ignoreTrees": [""]},
+                                       "tree": {"$className": "DataModel", "$path": "src"}}))
+        place = root / "check.rbxl"
+        place.write_bytes(data)
+        # syncback deserializes before applying ignoreTrees. Ignore the export:
+        # valid Roblox siblings can share names, which a Rojo project forbids.
+        # Dry-run additionally prevents all filesystem mutations.
+        result = subprocess.run([str(executable.resolve()), "syncback", str(project), "--input", str(place),
+                                 "--dry-run", "--non-interactive"], capture_output=True, text=True)
+        if result.returncode:
+            raise ValueError("Rojo rejected the place:\n" + result.stderr)
+    return version
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", type=Path, default=ROOT / "kz_variety_fix.rbxl")
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--luau-compile", type=Path)
+    parser.add_argument("--rojo", type=Path, help="independent full RBXL deserialization")
     args = parser.parse_args()
     data = args.base.read_bytes()
     if not args.check:
         data = build(data)
     report = verify_sources(data, args.luau_compile)
+    if args.rojo:
+        report["rojo_validated"] = True
+        report["rojo_version"] = verify_rojo(data, args.rojo)
     if not args.check:
         (ROOT / "kz_variety_fix.rbxl").write_bytes(data)
         make_zip(data, ROOT / "kz_variety_fix_updated.zip")

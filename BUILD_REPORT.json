@@ -1,32 +1,35 @@
 {
-  "sha256": "b827b0d8d3b9fa29f7546f01ad5b59d03729bc76dd729b01dcdf539f3ed94b0b",
-  "bytes": 2830800,
+  "sha256": "62a4cee605d9a42a508c1c5023e8facc0fa0912900939b06e738f719c3cde08a",
+  "bytes": 2858505,
   "chunks": 1869,
   "classes": 92,
   "instances": 135676,
   "string_properties": 370,
   "scripts": 428,
-  "build": "2026-10-19",
-  "baseline_sha256": "14b2320e37adcb127640e2f79803e8a0a9dcf76652c07dc1cc05636b2d80f3dd",
-  "zip_sha256": "c220aae05b09b89d13cd5959acd15bba6eb6f7d5e903d5e7406d5beea5629e8a",
-  "luau_commit": "9d7748a4f324213a18cb8283fa2a77c330225fa0",
   "compiled_scripts": 428,
+  "rojo_validated": true,
+  "rojo_version": "Rojo 7.7.1",
+  "build": "2026-10-19-r2",
+  "release": "V7.17",
+  "previous_commit": "de7b98641d05c4c98d2fe8e02a6e79df9b1b34a2",
+  "baseline_sha256": "b827b0d8d3b9fa29f7546f01ad5b59d03729bc76dd729b01dcdf539f3ed94b0b",
+  "zip_sha256": "0f23b67334715232ef6e63dd3b5bceecc51d15c39dc745c88049760414324292",
+  "luau_commit": "9d7748a4f324213a18cb8283fa2a77c330225fa0",
   "test_results": {
-    "physics_scenarios": 41,
-    "client_scenarios": 8,
-    "server_scenarios": 17,
+    "physics_scenarios": 46,
+    "client_scenarios": 10,
+    "server_scenarios": 27,
     "container_and_installer": 12,
     "failed": 0
   },
   "changed_sources": [
     "StarterPlayer/StarterPlayerScripts/KZClassicControls",
     "StarterPlayer/StarterPlayerScripts/KZClassicMovement",
-    "ReplicatedStorage/KZClassic/KZMapData",
     "ReplicatedStorage/KZClassic/KZBrushCollision",
-    "ReplicatedStorage/KZClassic/KZBrushMotor",
     "ServerScriptService/KZClassicGameplay"
   ],
   "studio_run": false,
   "real_two_client_test": false,
-  "geometry_and_backup_sources_preserved": true
+  "geometry_and_backup_sources_preserved": true,
+  "rojo_rejects_damaged_source_length": true
 }

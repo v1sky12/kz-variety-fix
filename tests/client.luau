@@ -47,6 +47,26 @@ test('client synchronizes ladder attachment for bhop state reset',function()
     local event=last('LadderAttach');assert(event and event.args[1].id==1);assert(s.ladder)
     Data.ladderSurfaces=saved
 end)
+test('held Space detaches a ladder even when Space was already held on approach',function()
+    local s=client.session();local saved=Data.ladderSurfaces
+    local ladder={id=2,axis=1,bounds={{0,-500,0},{1,500,500}}}
+    Data.ladderSurfaces={ladder};s.ladder=ladder;s.ladderUntil=0;s.jumpHeld=true
+    s.motor.p=Vector3.new(0,136,0);s.motor.v=Vector3.zero
+    local takeoff,takeoffTime=s.motor:feet(),s.motor.time
+    client.ladderStep(s,{jump=true,view=Vector3.new(0,0,-1),right=Vector3.new(1,0,0),axis=1,side=0},1/128,{})
+    assert(s.ladder==nil and s.motor.flight and s.motor.flight.kind=='LAJ')
+    near((s.motor.flight.start-takeoff).Magnitude,0);near(s.motor.flight.time,takeoffTime)
+    near(s.motor.v.Magnitude,270);Data.ladderSurfaces=saved
+end)
+test('long horizontal ladder permits lateral travel without vertical drift',function()
+    local s=client.session();local saved=Data.ladderSurfaces
+    local ladder={id=3,axis=1,bounds={{0,-500,0},{1,500,500}}}
+    Data.ladderSurfaces={ladder};s.ladder=ladder;s.ladderUntil=0
+    s.motor.p=Vector3.new(0,136,0);s.motor.v=Vector3.zero
+    for _=1,100 do client.ladderStep(s,{view=Vector3.new(0,0,-1),right=Vector3.new(1,0,0),axis=0,side=1},1/128,{}) end
+    near(s.motor.p.X,200*100/128);near(s.motor.p.Y,136);assert(s.ladder==ladder)
+    Data.ladderSurfaces=saved
+end)
 test('character removal restores humanoid state and releases query resources',function()
     player.CharacterRemoving:Fire(character)
     assert(client.session()==nil);assert(humanoid.EvaluateStateMachine)

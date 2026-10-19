@@ -1,6 +1,7 @@
 -- Original Luau implementation of convex hull / swept AABB collision.
 -- Plane convention: n dot point <= d. Primitive sweep is analytic; MeshParts use Roblox geometric queries.
 local B={}
+local primitiveCache=setmetatable({}, {__mode='k'})
 local axes={Vector3.new(1,0,0),Vector3.new(0,1,0),Vector3.new(0,0,1)}
 local function support(n,h) return math.abs(n.X)*h.X+math.abs(n.Y)*h.Y+math.abs(n.Z)*h.Z end
 local function minv(a,b) return Vector3.new(math.min(a.X,b.X),math.min(a.Y,b.Y),math.min(a.Z,b.Z)) end
@@ -44,6 +45,11 @@ function B.fromVertices(vertices,id)
     return {planes=planes,lo=lo,hi=hi,id=id}
 end
 function B.fromPart(part)
+    -- Respawns reuse immutable primitive geometry. Rebuild when an editor or
+    -- map script changes a collider; never cache native mesh query results.
+    local shape=part:IsA('Part') and part.Shape or nil
+    local cached=primitiveCache[part]
+    if cached and cached.size==part.Size and cached.frame==part.CFrame and cached.shape==shape then return cached.brush end
     local v={};local h=part.Size*.5
     local function vertex(x,y,z) v[#v+1]=part.CFrame:PointToWorldSpace(Vector3.new(x*h.X,y*h.Y,z*h.Z)) end
     if part:IsA('WedgePart') then
@@ -54,7 +60,9 @@ function B.fromPart(part)
     elseif part:IsA('Part') and part.Shape==Enum.PartType.Block then
         for _,x in ipairs({-1,1}) do for _,y in ipairs({-1,1}) do for _,z in ipairs({-1,1}) do vertex(x,y,z) end end end
     else return nil,'Unsupported collidable '..part.ClassName..': '..part:GetFullName() end
-    return B.fromVertices(v,part)
+    local brush=B.fromVertices(v,part)
+    primitiveCache[part]={size=part.Size,frame=part.CFrame,shape=shape,brush=brush}
+    return brush
 end
 function B.sweepBrush(brush,start,delta,half,skin)
     skin=skin or .001
@@ -65,7 +73,10 @@ function B.sweepBrush(brush,start,delta,half,skin)
         local endDistance=distance+p.n:Dot(delta)
         if distance>0 then outside=true end
         if distance>=-skin then deep=false end
-        if distance>0 and endDistance>=distance then return nil end
+        -- A clipped tangent can have an inward dot product at floating-point
+        -- noise scale. Dividing by that tiny value falsely selects the side
+        -- of the next ramp as a blocking wall at fraction zero.
+        if distance>0 and endDistance>=distance-1e-9 then return nil end
         if distance<=0 and endDistance<=0 then
             -- Entire segment stays inside this plane.
         elseif endDistance<distance then
@@ -188,7 +199,10 @@ function B.clip(v,n)
 end
 function World:slide(pos,vel,half,dt)
     local remaining=dt;local original=vel;local planes={};local contacts={}
-    for _=1,4 do
+    -- Mesh seams can report the same tangent plane at fraction zero. Treat it
+    -- as one constraint, and separate by a collision skin without adding speed.
+    -- Eight bumps also leave room for several distinct ramp faces in one tick.
+    for _=1,8 do
         if vel.Magnitude<1e-8 then break end
         local t=self:trace(pos,vel*remaining,half)
         if t.startSolid then return pos,Vector3.zero,contacts,true,planes end
@@ -200,7 +214,14 @@ function World:slide(pos,vel,half,dt)
         -- Source TryPlayerMove clears prior constraints after positive travel.
         -- Only contacts at the same position constrain a corner/crease together.
         if t.fraction>0 then planes={} end
-        planes[#planes+1]=t.normal
+        local duplicate=false
+        for _,n in ipairs(planes) do if n:Dot(t.normal)>1-1e-8 then duplicate=true;break end end
+        if not duplicate then planes[#planes+1]=t.normal end
+        if duplicate and t.fraction<=1e-6 then
+            local separation=t.normal*.002
+            local clear=self:trace(pos,separation,half)
+            if not clear.startSolid and clear.fraction==1 then pos=clear.position end
+        end
         local nextVelocity
         for _,n in ipairs(planes) do
             local candidate=B.clip(vel,n);local clear=true
