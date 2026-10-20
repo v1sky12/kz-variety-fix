@@ -194,6 +194,36 @@ test('water level changes surface without moving bottom',function()
     local m={GetAttribute=function() return 10 end}
     local b=Data.waterBounds(m,e);near(b[1][3],-100);near(b[2][3],10)
 end)
+test('R6 foot position includes leg height and crouch does not add it to HipHeight',function()
+    local leg={Size=V(1,2,1)}
+    local root={Size=V(2,2,1),Position=V(0,3,0),Parent={FindFirstChild=function(_,name) return name=='Left Leg' and leg or nil end}}
+    local h={HipHeight=0,RigType=Enum.HumanoidRigType.R6}
+    near(Data.standingHeight(root,h),3)
+    near(Data.feetSource(map(0),root,h).Z,0)
+    near(Data.hipHeight(root,h,3),0)
+    h.RigType=Enum.HumanoidRigType.R15;h.HipHeight=2
+    near(Data.standingHeight(root,h),3)
+end)
+test('floating water still recognizes the body when the feet pass below its bottom',function()
+    local saved=Data.zones
+    Data.zones={{id='floating',class='func_water',triggerType=0,bounds={{-100,-100,0},{100,100,72}},properties={}}}
+    assert(Data.modifiers(map(0),V(0,0,-40),72).water,'body overlaps liquid but feet-only test lost water')
+    assert(Data.modifiers(map(0),V(0,0,-73),72).waterLevel==0,'water reached a completely separate body')
+    assert(Data.modifiers(map(0),V(101,0,-40),72).waterLevel==0,'water reached outside the volume footprint')
+    Data.zones=saved
+end)
+test('Space lifts a player entering a floating water volume from below',function()
+    local saved=Data.zones
+    Data.zones={{id='floating',class='func_water',triggerType=0,bounds={{-100,-100,96},{100,100,168}},properties={}}}
+    local m=Motor.new(floorWorld(),Core,V(0,36.001,0),1);local highest=0
+    for _=1,512 do
+        local zone=Data.modifiers(map(0),Data.sourcePoint(map(0),m:feet()),72)
+        local _,stuck=m:tick({wish=V(0,0,0),jump=true},1/128,zone)
+        assert(not stuck);highest=math.max(highest,m:feet().Y)
+    end
+    Data.zones=saved
+    assert(highest>130,'normal jump entered water head-first but swimming never took over')
+end)
 test('disabled map modifier is ignored consistently',function()
     local saved=Data.zones
     Data.zones={{id='g',bounds={{-100,-100,-100},{100,100,100}},class='trigger_multiple',triggerType=1,properties={timer_modifier_gravity='.4'}}}

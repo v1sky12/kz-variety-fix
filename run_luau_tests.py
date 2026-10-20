@@ -38,7 +38,7 @@ def main():
     prelude = "local fixture=(function()\n" + fixture + "\nend)()\n"
     prelude += "local Vector3,CFrame=fixture.Vector3,fixture.CFrame\nlocal warn=print\n"
     prelude += "local typeof=function(v) local m=type(v)=='table' and getmetatable(v);return m and m.__type or type(v) end\n"
-    prelude += 'local Enum={PartType={Block="Block"}}\n'
+    prelude += 'local Enum={PartType={Block="Block"},HumanoidRigType={R6="R6",R15="R15"}}\n'
     prelude += "local imported=" + literal(data) + "\n"
     prelude += "local game={GetService=function() return {JSONDecode=function() return imported end} end}\n"
     for variable, name in (("Blocks", "KZBlockController"), ("Core", "KZClassicCore"), ("Collision", "KZBrushCollision"), ("Motor", "KZBrushMotor"), ("Bhop", "KZBhop"), ("Data", "KZMapData")):

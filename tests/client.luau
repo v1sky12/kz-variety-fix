@@ -118,6 +118,22 @@ test('character removal restores humanoid state and releases query resources',fu
     assert(client.session()==nil);assert(humanoid.EvaluateStateMachine)
     assert(root:GetAttribute('KZMovementBuild')==nil and root:GetAttribute('KZMovementBackend')==nil)
 end)
+test('R6 starts at real feet and Space swims through an upper-body water contact',function()
+    local savedFind=character.FindFirstChild
+    character.FindFirstChild=function(_,name) if name=='Left Leg' then return {Size=Vector3.new(1,2,1)} end end
+    humanoid.RigType='R6';humanoid.HipHeight=0;root.CFrame=CFrame.new(Vector3.new(0,3.001,0))
+    client.setup(character)
+    local s=assert(client.session(),'R6 setup falsely intersected the floor')
+    near(s.standing,3);near(s.motor:feet().Y,.001)
+    Data.zones={{id='headContact',class='func_water',bounds={{-100,-100,48},{100,100,168}},properties={}}}
+    keys.Space=true
+    for _=1,512 do RunService.PostSimulation:Fire(1/128) end
+    keys.Space=false
+    assert(client.session()==s and s.motor:feet().Y>130,'Space did not raise the R6 swimmer')
+    assert(root:GetAttribute('KZWaterLevel')>0,'water hint telemetry was missing')
+    Data.zones={};character.FindFirstChild=savedFind;humanoid.RigType=nil;humanoid.HipHeight=35
+    root.CFrame=CFrame.new(Vector3.new(0,36.001,0));client.setup(character)
+end)
 test('fallback releases mutex before enabling saved motor',function()
     client.setup(character)
     client.fallback('forced test failure')

@@ -64,8 +64,22 @@ function Data.sourcePoint(map, point)
     local v = map:GetPivot():PointToObjectSpace(point) / Data.unitFor(map)
     return Vector3.new(-v.Z, -v.X, v.Y)
 end
+function Data.rigLegHeight(root,humanoid)
+    if Enum.HumanoidRigType and humanoid.RigType==Enum.HumanoidRigType.R6 then
+        local character=root.Parent
+        local leg=character and character:FindFirstChild('Left Leg')
+        return leg and leg.Size.Y or 2
+    end
+    return 0
+end
+function Data.standingHeight(root,humanoid)
+    return humanoid.HipHeight+root.Size.Y/2+Data.rigLegHeight(root,humanoid)
+end
+function Data.hipHeight(root,humanoid,standing)
+    return math.max(0,standing-root.Size.Y/2-Data.rigLegHeight(root,humanoid))
+end
 function Data.feetSource(map, root, humanoid)
-    local standing = humanoid.HipHeight + root.Size.Y / 2
+    local standing = Data.standingHeight(root,humanoid)
     return Data.sourcePoint(map, root.Position - Vector3.new(0, standing, 0))
 end
 function Data.intersects(bounds, feet, height, radius)
@@ -186,11 +200,16 @@ function Data.modifiers(map, feet, height, state)
             elseif e.class == "func_water" then
                 local bounds=Data.waterBounds(map,e)
                 local level=0
-                if Data.contains(bounds,Vector3.new(feet.X,feet.Y,feet.Z+1)) then
+                -- Floating water brushes can touch the upper body while the
+                -- feet are below their lower face. Requiring wet feet first
+                -- made these visible volumes stop swimming on descent and
+                -- impossible to re-enter from below. Contact is a hull test;
+                -- immersion is then measured against the water surface.
+                if Data.intersects(bounds,feet,height,0) then
                     level=1
-                    if Data.contains(bounds,Vector3.new(feet.X,feet.Y,feet.Z+height*.5)) then
+                    if feet.Z+height*.5<=bounds[2][3] then
                         level=2
-                        if Data.contains(bounds,Vector3.new(feet.X,feet.Y,feet.Z+height-8)) then level=3 end
+                        if feet.Z+height-8<=bounds[2][3] then level=3 end
                     end
                 end
                 m.waterLevel=math.max(m.waterLevel,level);m.water=m.waterLevel>=2

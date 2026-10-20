@@ -57,9 +57,30 @@ command.Triggered:Connect(function(source)
     if source and source.UserId~=player.UserId then return end
     enabled=not enabled;display("[KZ] Jumpstats "..(enabled and "ON" or "OFF"))
 end)
+local diagnostic=Instance.new('TextChatCommand')
+diagnostic.Name='KZLocalDiagnostic';diagnostic.PrimaryAlias='/kzdiag';diagnostic.SecondaryAlias='!kzdiag'
+diagnostic.Parent=TextChatService
+diagnostic.Triggered:Connect(function(source)
+    if source and source.UserId~=player.UserId then return end
+    local character=player.Character
+    local root=character and character:FindFirstChild('HumanoidRootPart')
+    local humanoid=character and character:FindFirstChildOfClass('Humanoid')
+    if not root or not humanoid then display('[KZ] Character not ready');return end
+    local shared=game:GetService('ReplicatedStorage'):WaitForChild('KZClassic')
+    local Data=require(shared:WaitForChild('KZMapData'))
+    local map=Data.findMap(workspace)
+    local pos=map and Data.feetSource(map,root,humanoid) or Vector3.zero
+    local line=string.format('[KZ V7.22] build=%s backend=%s rig=%s POS=%.1f %.1f %.1f water=%s vy=%.1f ramps=%s fallback=%s',
+        tostring(root:GetAttribute('KZMovementBuild')),tostring(root:GetAttribute('KZMovementBackend')),
+        tostring(humanoid.RigType),pos.X,pos.Y,pos.Z,tostring(root:GetAttribute('KZWaterLevel')),
+        root:GetAttribute('KZWaterVerticalUnits') or 0,tostring(root:GetAttribute('KZRampCorrections')),
+        tostring(player:GetAttribute('KZBrushFallbackReason')))
+    print(line);display(line)
+end)
 script.Destroying:Connect(function()
     destroyed=true
     if characterConnection then characterConnection:Disconnect() end
     if connection then connection:Disconnect() end
     command:Destroy()
+    diagnostic:Destroy()
 end)

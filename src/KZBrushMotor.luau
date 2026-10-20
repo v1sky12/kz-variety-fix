@@ -217,7 +217,10 @@ function M:tick(input,dt,zone)
     self.v=Vector3.new(math.max(-limit,math.min(limit,self.v.X)),math.max(-limit,math.min(limit,self.v.Y)),math.max(-limit,math.min(limit,self.v.Z)))
     local preMoveVelocity=self.v
     local contacts,stuck,activePlanes
-    self.p,self.v,contacts,stuck,activePlanes=self.world:move(self.p,self.v,self:half(),dt,self.grounded,profile.StepHeight*self.unit)
+    self.p,self.v,contacts,stuck,activePlanes=self.world:move(self.p,self.v,self:half(),dt,self.grounded,profile.StepHeight*self.unit,self.lastTracePlane or self.surfNormal,self.unit)
+    for _,contact in ipairs(contacts or {}) do
+        if contact.normal then self.lastTracePlane=contact.normal end
+    end
     self.contactPlanes=activePlanes
     if stuck and self.world.recover then
         local recovered=self.world:recover(self.p,self:half(),2*self.unit)

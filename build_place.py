@@ -13,7 +13,7 @@ from rbxl_container import (add_module_script, append_block_model, audit_kz_runt
                             decode_references, uint)
 
 ROOT = Path(__file__).resolve().parent
-VERSIONED_ZIP = "kz_variety_fix_V7_21.zip"
+VERSIONED_ZIP = "kz_variety_fix_V7_22.zip"
 PACKAGE_FILES = ("INSTALL_KZ_VARIETY_FIX.md", "PLAYTEST_RU.md", "BLOCKS_RU.md", "PHYSICS_RU.md", "SCENE_CHANGES_RU.md",
                  "scene/placements.json", "scene/route_blocks.json", "scene/manifest.json", "special_blocks_audit.json",
                  "install_kz_variety_fix.py", "rbxl_container.py", "requirements.txt")

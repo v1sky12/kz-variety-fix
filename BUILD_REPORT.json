@@ -1,6 +1,6 @@
 {
-  "sha256": "f92914fa45ca81ff43e7b6a1b2da9403ae96b85f48585102c2053eeb98b3177c",
-  "bytes": 2886087,
+  "sha256": "ba022538d13e1146d0d00d120dc5d49c0139f609f9043158e274f3d32661d0f8",
+  "bytes": 2901673,
   "chunks": 2016,
   "classes": 100,
   "instances": 135972,
@@ -25,418 +25,283 @@
   "rojo_version": "Rojo 7.7.1",
   "changed_sources": [
     "StarterPlayer/StarterPlayerScripts/KZClassicHUD",
+    "StarterPlayer/StarterPlayerScripts/KZClassicChat",
     "StarterPlayer/StarterPlayerScripts/KZClassicMovement",
-    "ReplicatedStorage/KZClassic/KZClassicCore",
+    "ReplicatedStorage/KZClassic/KZMapData",
+    "ReplicatedStorage/KZClassic/KZBrushCollision",
     "ReplicatedStorage/KZClassic/KZBrushMotor",
     "ServerScriptService/KZClassicGameplay"
   ],
-  "changed_scene_properties": [
-    {
-      "id": 7,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22",
-      "property": "AttributesSerialize"
-    },
-    {
-      "id": 120,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04145",
-      "property": "CanCollide"
-    },
-    {
-      "id": 895,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_03193",
-      "property": "CanCollide"
-    },
-    {
-      "id": 1208,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04141",
-      "property": "CanCollide"
-    },
-    {
-      "id": 1259,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04987",
-      "property": "CanCollide"
-    },
-    {
-      "id": 1904,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00781",
-      "property": "CanCollide"
-    },
-    {
-      "id": 2323,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04985",
-      "property": "CanCollide"
-    },
-    {
-      "id": 3328,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04983",
-      "property": "CanCollide"
-    },
-    {
-      "id": 4001,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04984",
-      "property": "CanCollide"
-    },
-    {
-      "id": 6470,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_05002",
-      "property": "CanCollide"
-    },
-    {
-      "id": 9321,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04146",
-      "property": "CanCollide"
-    },
-    {
-      "id": 9418,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00975",
-      "property": "CanCollide"
-    },
-    {
-      "id": 10802,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_02746",
-      "property": "CanCollide"
-    },
-    {
-      "id": 13065,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04894",
-      "property": "CanCollide"
-    },
-    {
-      "id": 15076,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04988",
-      "property": "CanCollide"
-    },
-    {
-      "id": 15558,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04147",
-      "property": "CanCollide"
-    },
-    {
-      "id": 15578,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_01003",
-      "property": "CanCollide"
-    },
-    {
-      "id": 120,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04145",
-      "property": "CanQuery"
-    },
-    {
-      "id": 895,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_03193",
-      "property": "CanQuery"
-    },
-    {
-      "id": 1208,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04141",
-      "property": "CanQuery"
-    },
-    {
-      "id": 1259,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04987",
-      "property": "CanQuery"
-    },
-    {
-      "id": 1904,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00781",
-      "property": "CanQuery"
-    },
-    {
-      "id": 2323,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04985",
-      "property": "CanQuery"
-    },
-    {
-      "id": 3328,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04983",
-      "property": "CanQuery"
-    },
-    {
-      "id": 4001,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04984",
-      "property": "CanQuery"
-    },
-    {
-      "id": 6470,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_05002",
-      "property": "CanQuery"
-    },
-    {
-      "id": 9321,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04146",
-      "property": "CanQuery"
-    },
-    {
-      "id": 9418,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00975",
-      "property": "CanQuery"
-    },
-    {
-      "id": 10802,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_02746",
-      "property": "CanQuery"
-    },
-    {
-      "id": 13065,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04894",
-      "property": "CanQuery"
-    },
-    {
-      "id": 15076,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04988",
-      "property": "CanQuery"
-    },
-    {
-      "id": 15558,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04147",
-      "property": "CanQuery"
-    },
-    {
-      "id": 15578,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_01003",
-      "property": "CanQuery"
-    },
-    {
-      "id": 120,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04145",
-      "property": "CanTouch"
-    },
-    {
-      "id": 895,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_03193",
-      "property": "CanTouch"
-    },
-    {
-      "id": 1208,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04141",
-      "property": "CanTouch"
-    },
-    {
-      "id": 1259,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04987",
-      "property": "CanTouch"
-    },
-    {
-      "id": 1904,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00781",
-      "property": "CanTouch"
-    },
-    {
-      "id": 2323,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04985",
-      "property": "CanTouch"
-    },
-    {
-      "id": 3328,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04983",
-      "property": "CanTouch"
-    },
-    {
-      "id": 4001,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04984",
-      "property": "CanTouch"
-    },
-    {
-      "id": 6470,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_05002",
-      "property": "CanTouch"
-    },
-    {
-      "id": 9321,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04146",
-      "property": "CanTouch"
-    },
-    {
-      "id": 9418,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00975",
-      "property": "CanTouch"
-    },
-    {
-      "id": 10802,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_02746",
-      "property": "CanTouch"
-    },
-    {
-      "id": 13065,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04894",
-      "property": "CanTouch"
-    },
-    {
-      "id": 15076,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04988",
-      "property": "CanTouch"
-    },
-    {
-      "id": 15558,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04147",
-      "property": "CanTouch"
-    },
-    {
-      "id": 15578,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_01003",
-      "property": "CanTouch"
-    },
-    {
-      "id": 8379,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_08823",
-      "property": "CanCollide"
-    },
-    {
-      "id": 8379,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_08823",
-      "property": "CanQuery"
-    },
-    {
-      "id": 8379,
-      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_08823",
-      "property": "CanTouch"
-    }
-  ],
-  "protected_script_sources": 424,
+  "changed_scene_properties": [],
+  "protected_script_sources": 422,
   "all_original_instance_ids_and_parents_preserved": true,
-  "release": "V7.21",
-  "build": "2026-10-20-r2",
-  "previous_commit": "5bffae39477fdefdeab7f28e7f4b9b6335ee19a2",
-  "baseline_sha256": "d93078b778b811dcf594165d6a76febd466bc132c0ce8b8f9d28d36e2926144f",
-  "zip_sha256": "9c43f9d32a232743d9257988661d8ee39fa89e636f573d5fa52fa9e68ba6ca8d",
-  "versioned_zip": "kz_variety_fix_V7_21.zip",
-  "versioned_zip_matches_standard": true,
-  "luau_commit": "9d7748a4f324213a18cb8283fa2a77c330225fa0",
-  "lune_version": "0.11.0",
-  "lune_archive_sha256": "5a0ea32c3e13e5e3b1dc415c2056bcfe44258b3a811dcd473c50e3b437d10f72",
-  "studio_run": false,
-  "real_two_client_test": false,
-  "native_mesh_collisions_tested": false,
-  "native_mesh_query_count": 20,
-  "primitive_brush_count": 16069,
-  "physics_ticks_per_second": 128,
-  "build_is_reproducible_and_idempotent": true,
-  "added_instances": 23,
-  "physics_updated": true,
-  "test_results": {
-    "physics_scenarios": 72,
-    "block_scenarios": 24,
-    "client_scenarios": 15,
-    "server_scenarios": 36,
-    "container_and_installer": 22,
-    "failed": 0
+  "release": "V7.22",
+  "movement_build": "2026-10-20-r3",
+  "baseline_commit": "a4edcaf5624957765333c8a7169c17c17cd6a577",
+  "baseline_sha256": "f92914fa45ca81ff43e7b6a1b2da9403ae96b85f48585102c2053eeb98b3177c",
+  "versioned_zip": "kz_variety_fix_V7_22.zip",
+  "zip_sha256": "9259bca8197af0432b569d03426c71dab60bf6dcba918e1925b8aee643fff43d",
+  "zip_bytes": 2840456,
+  "native_studio_validated": false,
+  "tests": {
+    "physics": 75,
+    "blocks": 24,
+    "client": 16,
+    "server": 36,
+    "python": 22
   },
-  "visible_blocks_by_type": {
-    "SingleBhop": 9,
-    "MultiBhop": 8,
-    "SequentialBhop": 3,
-    "Reset": 2
-  },
-  "float32_regressions": {
-    "plane_projections": 11160,
-    "unwanted_stops": 0,
-    "downhill_wall_tangents": 360,
-    "rotated_thin_primitive_traces": 540
-  },
-  "offline_map_checks": {
-    "water_contact_trajectories": 360,
-    "water_volumes": 11,
-    "bottom_to_surface_trajectories": 180,
-    "open_bank_exits": 14,
-    "wall_sealed_shore_approaches": 4,
-    "route_jump_trajectories": 4,
-    "sequence_repeat_rejected": true,
-    "exit_reset_cleared": true,
-    "water_stuck_cases": 0,
-    "conveyors_with_accessible_support": 4,
-    "conveyor_paths": 36,
-    "unconfirmed_conveyors": 1,
-    "surf_trajectories": 258,
-    "surf_start_solid_cases": 0,
-    "surf_abrupt_stops_at_actual_walls": 2,
-    "teleport_poses": 284,
-    "teleport_blocked_poses": 0,
-    "teleport_missing_destinations": 0
-  },
-  "offline_motor_stress": [
-    {
-      "completed": 2000,
-      "energyCases": 0,
-      "failures": {},
-      "groundCorrections": 0,
-      "jumping": true,
-      "limit": 2000,
-      "recoveries": 0,
-      "seconds": 112.20987111399882,
-      "seed": 20261025,
-      "starts": 160,
-      "ticks": 128000
-    }
-  ],
   "validation_steps": {
     "build": {
-      "exit_code": 0,
-      "seconds": 43.068
+      "exit_code": 0
     },
     "luau": {
-      "exit_code": 0,
-      "seconds": 0.728
+      "exit_code": 0
     },
     "python": {
-      "exit_code": 0,
-      "seconds": 38.706
+      "exit_code": 0
     },
     "float32": {
-      "exit_code": 0,
-      "seconds": 1.543
+      "exit_code": 0
+    },
+    "surf_ascent": {
+      "exit_code": 0
     },
     "audit": {
-      "exit_code": 0,
-      "seconds": 13.255
+      "exit_code": 0
     },
     "scene_verify": {
-      "exit_code": 0,
-      "seconds": 20.37
+      "exit_code": 0
     },
     "water": {
-      "exit_code": 0,
-      "seconds": 36.353
+      "exit_code": 0
     },
     "water_surfaces": {
-      "exit_code": 0,
-      "seconds": 57.682
+      "exit_code": 0
+    },
+    "water_contact": {
+      "exit_code": 0
+    },
+    "water_server": {
+      "exit_code": 0
     },
     "water_exits": {
-      "exit_code": 0,
-      "seconds": 12.874
+      "exit_code": 0
     },
     "route": {
-      "exit_code": 0,
-      "seconds": 11.892
+      "exit_code": 0
     },
     "conveyor": {
-      "exit_code": 0,
-      "seconds": 13.711
+      "exit_code": 0
     },
     "surf": {
-      "exit_code": 0,
-      "seconds": 22.969
+      "exit_code": 0
     },
     "teleports": {
-      "exit_code": 0,
-      "seconds": 12.107
+      "exit_code": 0
     },
     "package_check": {
-      "exit_code": 0,
-      "seconds": 10.327
+      "exit_code": 0
+    },
+    "surf_uphill_map": {
+      "exit_code": 0
+    },
+    "preservation_and_idempotence": {
+      "exit_code": 0
+    },
+    "stress": {
+      "exit_code": 0
     }
   },
-  "reproduced_before_fix": "Holding Space and forward could not climb a bank at the actual water surface.",
-  "water_exit_parameters": {
-    "vertical_impulse": 256,
-    "forward_speed": 50,
-    "maximum_seconds": 2
+  "geometry": {
+    "primitive_colliders": 16069,
+    "native_mesh_colliders": 20,
+    "primitive_compile_failures": 0,
+    "new_instances_since_v721": 0,
+    "scene_properties_changed_since_v721": 0,
+    "visible_route_blocks_preserved": 22
   },
+  "water": {
+    "volumes": [
+      {
+        "id": "1c37063a-8d61-4fd1-b5fe-d4f9fabac9b0",
+        "surface_z": -640,
+        "bottom_to_surface_trajectories": 18,
+        "head_first_lower_entries": 0,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.75909423828125
+      },
+      {
+        "id": "9534e1d3-ab65-4e57-8c72-b98247f8e870",
+        "surface_z": -752,
+        "bottom_to_surface_trajectories": 8,
+        "head_first_lower_entries": 0,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.81256103515625
+      },
+      {
+        "id": "3d1c8ffa-d2ff-49af-b056-060b514c00a2",
+        "surface_z": -335,
+        "bottom_to_surface_trajectories": 18,
+        "head_first_lower_entries": 0,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.69482421875
+      },
+      {
+        "id": "3b8cb5f0-2f0a-4e6e-b180-57f832fa02e0",
+        "surface_z": -136,
+        "bottom_to_surface_trajectories": 18,
+        "head_first_lower_entries": 9,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.6355438232421875
+      },
+      {
+        "id": "0598bec9-b7d9-428f-9c1c-8a471380bccf",
+        "surface_z": -296,
+        "bottom_to_surface_trajectories": 18,
+        "head_first_lower_entries": 18,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.635528564453125
+      },
+      {
+        "id": "079872b0-9a0a-4395-bec6-1e9130f5d25e",
+        "surface_z": -216,
+        "bottom_to_surface_trajectories": 18,
+        "head_first_lower_entries": 18,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.635528564453125
+      },
+      {
+        "id": "b8bf3397-ec7a-408c-9e94-2baa7f87f642",
+        "surface_z": -576,
+        "bottom_to_surface_trajectories": 18,
+        "head_first_lower_entries": 0,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.60595703125
+      },
+      {
+        "id": "b46303b4-1133-4f50-a6f4-af5a9ce3093f",
+        "surface_z": -304,
+        "bottom_to_surface_trajectories": 12,
+        "head_first_lower_entries": 12,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.73077392578125
+      },
+      {
+        "id": "8c2b1b6f-0b26-422b-92d1-eed9b753bea5",
+        "surface_z": -704,
+        "bottom_to_surface_trajectories": 18,
+        "head_first_lower_entries": 9,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.60595703125
+      },
+      {
+        "id": "a057c38c-33dc-4163-b159-1edb61c159e4",
+        "surface_z": -432,
+        "bottom_to_surface_trajectories": 18,
+        "head_first_lower_entries": 18,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.605743408203125
+      },
+      {
+        "id": "151627fd-4508-41dc-81fd-8ae8fd6f759d",
+        "surface_z": -259.35101318359375,
+        "bottom_to_surface_trajectories": 16,
+        "head_first_lower_entries": 0,
+        "server_rig_posture_cases": 4,
+        "minimum_waist_clearance_at_surface": 6.861785888671875
+      }
+    ],
+    "surface_trajectories": 180,
+    "head_first_entries": 84,
+    "server_cases": 44,
+    "original_catch_tests": 2,
+    "rise_sink_trajectories": 360,
+    "stuck": 0,
+    "open_bank_exits": 14,
+    "failed_bank_exits": 0,
+    "approaches_blocked_by_real_walls": 4,
+    "server_services": "fixtures running actual Gameplay script and map zones; not native replication"
+  },
+  "surf": {
+    "real_rotated_scaled_wedge_regressions": 81,
+    "microscopic_seam_rises_cs_units": [
+      0,
+      0.0001,
+      0.001,
+      0.005,
+      0.01,
+      0.02
+    ],
+    "separation_cs_units": 0.03125,
+    "true_wall_and_raised_edge_guards": true,
+    "uphill_map_trajectories": 129,
+    "uphill_start_solid": 0,
+    "uphill_contact_losses_recorded": 128,
+    "contact_loss_note": "All 128 first loss events include a wall/ceiling normal. These are diagnostic paths, not proof every surf section is correct.",
+    "along_map_trajectories": 258,
+    "along_sudden_stops": 2,
+    "along_start_solid": 0
+  },
+  "fuzz": {
+    "completed": 2000,
+    "energyCases": 0,
+    "failures": {},
+    "groundCorrections": 0,
+    "jumping": true,
+    "limit": 2000,
+    "recoveries": 0,
+    "seed": 20261026,
+    "starts": 160,
+    "ticks": 128000
+  },
+  "teleport_destinations": {
+    "blocked": 0,
+    "cases": {},
+    "count": 284,
+    "missing": {},
+    "recoverable": 0
+  },
+  "route": {
+    "jumps": [
+      {
+        "from": 360,
+        "landedX": 471.2568664550781,
+        "to": 472,
+        "type": "SequentialBhop"
+      },
+      {
+        "from": 472,
+        "landedX": 630.9441528320312,
+        "to": 632,
+        "type": "SequentialBhop"
+      },
+      {
+        "from": 632,
+        "landedX": 790.9441528320312,
+        "to": 792,
+        "type": "SequentialBhop"
+      },
+      {
+        "from": 792,
+        "landedX": 903.2568359375,
+        "to": 904,
+        "type": "Reset"
+      }
+    ],
+    "repeatRejected": true,
+    "resetCleared": true
+  },
+  "reproduced_before_fix": [
+    "Water upper-body contact with feet below the real brush bottom was dry; a floating water volume could not be re-entered from below.",
+    "R6 foot calculation omitted Left Leg height (2 studs for a default rig) on client and server.",
+    "On actual float32 WedgeParts at unit scale 1, 0.005/0.01/0.02 CS-unit uphill seams discarded horizontal velocity in V7.21; V7.22 crosses these and exits an open crest."
+  ],
   "limitations": [
     "Roblox Studio and native multiplayer were not available.",
-    "20 native MeshPart collisions require Studio playtesting.",
+    "20 native MeshPart collisions still require Studio playtesting.",
     "One conveyor has no accessible support in the offline sample and remains unconfirmed.",
-    "The new Sequential line is an authored route addition, not an original CS2 trigger.",
-    "CYBERSHOKE settings and closed CS2 internals are not reproduced exactly."
+    "Microscopic seam regression is not proof of CYBERSHOKE parity or every possible surf transition.",
+    "Original water catch teleports are preserved; fully below a floating water brush is dry.",
+    "The Sequential line is an authored route addition, not an original CS2 trigger."
   ]
 }

@@ -1,8 +1,16 @@
-# kz_variety_fix — Roblox PC KZ, V7.21
+# kz_variety_fix — Roblox PC KZ, V7.22
 
 Обновление движения, воды и механик карты. Цель — поведение, близкое к открытому CKZ; точное совпадение с закрытым движком CS2 или настройками CYBERSHOKE не заявляется.
 
-[Скачать V7.21](kz_variety_fix_V7_21.zip?raw=1) · [Открытие и откат](INSTALL_KZ_VARIETY_FIX.md) · [Что изменено на карте](SCENE_CHANGES_RU.md)
+[Скачать V7.22](kz_variety_fix_V7_22.zip?raw=1) · [Открытие и откат](INSTALL_KZ_VARIETY_FIX.md) · [Что изменено на карте](SCENE_CHANGES_RU.md)
+
+## Исправления V7.22
+
+- **Определение воды.** Верхняя часть тела внутри плавающего водного объёма больше не считается сухой только потому, что ступни ниже его дна. Проверяется пересечение тела с реальным объёмом, затем погружение относительно поверхности. Это исправляет отсутствие подсказки и отказ Space при входе снизу. Вода не продлевается бесконечно вниз.
+- **Аватары R6.** Единая точка ступней на клиенте и сервере учитывает длину ноги R6. Раньше формула для R15 сдвигала hull и проверки воды/земли на два studs у обычного R6. Обратный расчёт HipHeight при приседании и очистке тоже учитывает тип аватара.
+- **Подъём на surf.** На микроскопическом стыке крутой рампы выполняется повторная проверка с отделением на 1/32 CS unit по прежней нормали, по принципу открытого CKZ. Требуется подтверждение соседнего склона и свободного смещения. Скорость не восстанавливается множителем; стены и крупные уступы сохраняются. Проверены повёрнутые WedgePart, масштаб карты и свободный сход сверху.
+- **Вся вода и сервер.** Проверены все 11 объёмов, R6/R15, стоя/в приседе, вход снизу и серверная обработка Motion/зон. Исходные ловушки у дна и над частью воды сохранены; всплытие проверяется через свободные проходы. Это офлайн-проверка настоящего серверного кода с имитацией сервисов, не тест двух игроков в Studio.
+- **Диагностика.** `/kzdiag` выводит локально в чат и F9 версию, backend, тип аватара, Source POS, уровень воды, вертикальную скорость и число коррекций рампы. Команда не отправляет сообщение другим игрокам. Геометрия и 22 видимых блока из V7.21 сохранены.
 
 ## Исправления V7.21 после проверки в игре
 
@@ -23,7 +31,7 @@
 
 Стандартная камера и PC-управление сохранены, экранные кнопки не добавлены. HUD получает виртуальную скорость в CS units/s. V5, `KZBrush_V1` и резервные скрипты сохранены; изменения старых свойств карты перечислены в `scene/manifest.json`.
 
-В Play у HumanoidRootPart основного мотора должен быть `KZMovementBuild=2026-10-20-r2`. Ожидаются `KZBrushCount=16069` и `KZBrushMeshQueryCount=20`.
+В Play у HumanoidRootPart основного мотора должен быть `KZMovementBuild=2026-10-20-r3`. Ожидаются `KZBrushCount=16069` и `KZBrushMeshQueryCount=20`.
 
 ## Проверки
 
@@ -47,10 +55,13 @@ python -B tools/install_lune.py --target /tmp/kz-lune/lune
 python -B run_luau_tests.py --luau /path/to/luau
 python -B -m unittest discover -s tests -p 'test_*.py' -v
 /tmp/kz-lune/lune run tools/float32_regressions.luau
+/tmp/kz-lune/lune run tools/surf_ascent_regressions.luau
 /tmp/kz-lune/lune run tools/audit_scene.luau
 /tmp/kz-lune/lune run tools/verify_scene.luau
 /tmp/kz-lune/lune run tools/water_map_probe.luau
 /tmp/kz-lune/lune run tools/water_surface_probe.luau
+/tmp/kz-lune/lune run tools/water_contact_probe.luau
+/tmp/kz-lune/lune run tools/water_server_probe.luau
 /tmp/kz-lune/lune run tools/water_exit_probe.luau
 /tmp/kz-lune/lune run tools/route_blocks_probe.luau
 /tmp/kz-lune/lune run tools/conveyor_map_probe.luau

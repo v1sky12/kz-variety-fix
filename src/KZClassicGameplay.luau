@@ -51,7 +51,7 @@ local function grounded(player)
     -- Match the motor's 32-unit footprint, 2-unit ground probe and walkable
     -- normal. A centre ray incorrectly reports air when standing on an edge.
     local height=motion and now()-motion.received<.3 and motion.height or (state and state.crouched and 54 or 72)
-    local feet=r.Position-Vector3.new(0,h.HipHeight+r.Size.Y/2,0)
+    local feet=r.Position-Vector3.new(0,Data.standingHeight(r,h),0)
     local water=Data.modifiers(map,Data.sourcePoint(map,feet),height,state)
     if water.water or water.waterLevel>0 and velocity.Y>0 then return false end
     local center=feet+Vector3.new(0,(height/2+.05)*unit,0)
@@ -122,7 +122,7 @@ local function moveTo(player, s, destination, angles, resetSpeed, countPractice,
     s.lastWarp = now()
     local feet = Data.worldPoint(map, destination)
     if relative then feet = feet + relative end
-    local target = feet + Vector3.new(0, h.HipHeight + r.Size.Y / 2 + .015, 0)
+    local target = feet + Vector3.new(0, Data.standingHeight(r,h) + .015, 0)
     local yaw = math.rad((angles and angles[2]) or 0)
     local forward = angles and map:GetPivot():VectorToWorldSpace(Vector3.new(-math.sin(yaw), 0, -math.cos(yaw))) or r.CFrame.LookVector
     local oldVelocity = s.motion and now()-s.motion.received<.3 and s.motion.velocity or r.AssemblyLinearVelocity
@@ -171,7 +171,7 @@ local function setCrouch(player, s, wanted)
     local standing = s.normalStanding
     s.airDuck = wanted and not grounded(player) or false
     s.crouched = wanted
-    h.HipHeight = math.max(0, standing - r.Size.Y / 2)
+    h.HipHeight = Data.hipHeight(r,h,standing)
     s.hull.Size = Vector3.new(32 * unit, height, 32 * unit)
     s.hullWeld.C0 = Data.hullOffset(map,r,height,standing)
     attr(player, "AirDuck", s.airDuck)
@@ -182,7 +182,7 @@ local function installHull(player, s, c)
     if not h or not r or player.Character ~= c then return end
     s.wasGrounded = false; s.groundSince = nil
     s.originalAutoRotate = h.AutoRotate
-    s.normalStanding = h.HipHeight + r.Size.Y / 2
+    s.normalStanding = Data.standingHeight(r,h)
     s.crouched = false; s.crouchWanted = false; s.airDuck=false
     attr(player, "AirDuck", false); attr(player, "Crouched", false)
     s.originalParts = {}
@@ -255,7 +255,7 @@ local function teleportEntity(player, s, e)
     local _, h, r = characterParts(player)
     local relative
     if p.timer_teleport_relative == "1" and r then
-        relative = r.Position - Vector3.new(0,h.HipHeight+r.Size.Y/2,0) - Data.worldPoint(map, e.origin)
+        relative = r.Position - Vector3.new(0,Data.standingHeight(r,h),0) - Data.worldPoint(map, e.origin)
     end
     if isCheckpoint then s.crouchWanted=dest.crouched;if dest.crouched then setCrouch(player,s,true) end end
     local moved=moveTo(player, s, dest.origin, p.timer_teleport_use_dest_angles == "0" and nil or dest.angles,
@@ -318,7 +318,7 @@ local function action(player, name, payload)
         if v.X~=v.X or v.Y~=v.Y or v.Z~=v.Z or f.X~=f.X or f.Y~=f.Y or f.Z~=f.Z
             or v.Magnitude>6100*unit or f.Magnitude>1000000 then return end
         local reported=Data.worldPoint(map,{f.X,f.Y,f.Z})
-        local actual=r.Position-Vector3.new(0,h.HipHeight+r.Size.Y/2,0)
+        local actual=r.Position-Vector3.new(0,Data.standingHeight(r,h),0)
         if (reported-actual).Magnitude>256*unit or time<(s.lastMotionAt or -math.huge)+.025 then return end
         local view=payload.view
         if view~=nil and not validView(view) then return end
@@ -676,7 +676,7 @@ connect(script.Destroying, function()
         end
         local _, h, r = characterParts(player)
         if h and s.normalStanding then
-            h.HipHeight = math.max(0, s.normalStanding - r.Size.Y / 2)
+            h.HipHeight = Data.hipHeight(r,h,s.normalStanding)
             h.AutoRotate = s.originalAutoRotate
         end
         attr(player, "Crouched", false); attr(player, "SourceHullReady", false)
@@ -687,4 +687,4 @@ connect(script.Destroying, function()
         if command:IsA("TextChatCommand") and command.Name:sub(1, 10) == "KZClassic_" then command:Destroy() end
     end
 end)
-print("KZ Classic V7.21 ready: visible route blocks, surface bank exits and shared map rules")
+print("KZ Classic V7.22 ready: hull water contact, R6 feet and uphill ramp trace retries")

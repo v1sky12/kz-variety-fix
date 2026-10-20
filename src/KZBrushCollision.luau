@@ -261,18 +261,49 @@ function B.clip(v,n)
     local d=v:Dot(n)
     return d<0 and v-n*d or v
 end
-function World:slide(pos,vel,half,dt)
+-- CKZ's ramp trace retry: prove the old slope is still adjacent before
+-- separating by 1/32 CS unit. Keep real walls/corners unless the retry makes
+-- meaningful progress; never restore speed by rescaling the velocity.
+function World:traceMove(start,delta,half,previous,unit)
+    local hit=self:trace(start,delta,half)
+    if not previous or previous.Y<=.0001 or previous.Y>=walkableNormal or hit.startSolid
+        or hit.fraction==1 or not hit.normal or delta.Magnitude<1e-8 then return hit end
+    local offset=previous*(.03125*(unit or 1))
+    if hit.normal:Dot(previous)>=.999 and hit.fraction*delta.Magnitude>=offset.Magnitude then return hit end
+    local proof=self:trace(hit.position+offset,-offset*3,half)
+    local function onSlope(t)
+        return not t.startSolid and t.fraction<1 and t.normal and t.normal:Dot(previous)>=.999
+    end
+    local requireEndProof=not onSlope(proof)
+    if requireEndProof and not onSlope(self:trace(start+offset,-offset*3,half)) then return hit end
+    local separate=self:trace(start,offset,half)
+    if separate.startSolid or separate.fraction<1 then return hit end
+    local retry=self:trace(start+offset,delta,half)
+    -- Imported triangles can leave a microscopic vertical lip, so the proof
+    -- at the seam itself hits that lip. Require the same adjacent slope at
+    -- BOTH ends before accepting this case; never bridge a real gap or wall.
+    if requireEndProof and not onSlope(self:trace(retry.position,-offset*3,half)) then return hit end
+    local progress=(retry.position-hit.position):Dot(delta.Unit)
+    if not retry.startSolid and progress>offset.Magnitude
+        and (retry.fraction==1 or retry.normal and retry.normal:Dot(previous)>=.99 or progress>(unit or 1)) then
+        retry.rampRetried=true;self.rampRetries=(self.rampRetries or 0)+1
+        return retry
+    end
+    return hit
+end
+function World:slide(pos,vel,half,dt,previous,unit)
     local remaining=dt;local original=vel;local planes={};local contacts={}
     -- Mesh seams can report the same tangent plane at fraction zero. Treat it
     -- as one constraint, and separate by a collision skin without adding speed.
     -- Eight bumps also leave room for several distinct ramp faces in one tick.
     for _=1,8 do
         if vel.Magnitude<1e-8 then break end
-        local t=self:trace(pos,vel*remaining,half)
+        local t=self:traceMove(pos,vel*remaining,half,previous,unit)
         if t.startSolid then return pos,Vector3.zero,contacts,true,planes end
         pos=t.position
         if t.fraction==1 then break end
         if not t.normal then return pos,Vector3.zero,contacts,true,planes end
+        previous=t.normal
         t.timeFraction=1-remaining*(1-t.fraction)/dt
         contacts[#contacts+1]=t;remaining=remaining*(1-t.fraction)
         -- Source TryPlayerMove clears prior constraints after positive travel.
@@ -302,12 +333,12 @@ function World:slide(pos,vel,half,dt)
     end
     return pos,vel,contacts,false,planes
 end
-function World:move(pos,vel,half,dt,grounded,stepHeight)
-    local direct,dv,contacts,stuck,planes=self:slide(pos,vel,half,dt)
+function World:move(pos,vel,half,dt,grounded,stepHeight,previous,unit)
+    local direct,dv,contacts,stuck,planes=self:slide(pos,vel,half,dt,previous,unit)
     if not grounded or stuck then return direct,dv,contacts,stuck,planes end
     local up=self:trace(pos,Vector3.new(0,stepHeight,0),half)
     if up.startSolid or up.fraction<1 then return direct,dv,contacts,stuck,planes end
-    local raised,rv,rc,rs,rp=self:slide(up.position,vel,half,dt)
+    local raised,rv,rc,rs,rp=self:slide(up.position,vel,half,dt,nil,unit)
     local down=self:trace(raised,Vector3.new(0,-stepHeight-0.002,0),half)
     if rs or down.startSolid or down.fraction==1 or not down.normal or down.normal.Y<walkableNormal then return direct,dv,contacts,stuck,planes end
     local function distance(p) local d=p-pos;return d.X*d.X+d.Z*d.Z end

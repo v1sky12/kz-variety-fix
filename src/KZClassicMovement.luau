@@ -30,7 +30,7 @@ local function restore()
         for _,name in ipairs({'KZMovementBackend','KZMovementBuild','KZBrushCount','KZBrushMeshQueryCount',
             'KZSurfing','KZSurfNormal','KZSurfPart','KZMapSlide','KZGroundCorrections','KZSeamRecoveries',
             'KZConveyorSpeedUnits','KZVirtualHullHeightUnits','KZBoundSourceZoneCount','KZMovementProfile','KZLadderId',
-            'KZWaterLevel','KZWaterExiting'}) do
+            'KZWaterLevel','KZWaterExiting','KZRampCorrections'}) do
             s.r:SetAttribute(name,nil)
         end
     end
@@ -87,7 +87,7 @@ local function setup(character)
     if not ok then if id==generation then fallback(err) end;return end
     if id~=generation or player.Character~=character then return end
     local world
-    local standing=h.HipHeight+r.Size.Y/2
+    local standing=Data.standingHeight(r,h)
     local center=r.Position+Vector3.new(0,36*unit-standing,0)
     local ready,why=pcall(function()
         world=B.world(brushes,nil,workspace,meshes,hull.CollisionGroup)
@@ -143,7 +143,7 @@ local function resetWarp(s,velocity,reason)
     m.p=s.r.Position+Vector3.new(0,m.height/2*s.unit-s.standing,0)
     m.v=velocity or Vector3.zero;m.flight=nil;m.dropY=nil;m.weirdAt=nil;m.lastValid=false;m.lastKind=nil
     m.waterJumpUntil=nil;m.waterJumpVelocity=nil;m.baseVelocity=Vector3.zero;m.pre=Core.newPre();m.lastLand=-math.huge;m.grounded=false;m.landingSpeed=nil;m.landingVelocity=nil;m.water=false
-    m.surfNormal=nil;m.surfPart=nil;m.groundNormal=nil;m.contactPlanes=nil;m.groundAge=math.huge;s.pushes={}
+    m.surfNormal=nil;m.surfPart=nil;m.groundNormal=nil;m.contactPlanes=nil;m.lastTracePlane=nil;m.groundAge=math.huge;s.pushes={}
     s.resetCount=(s.resetCount or 0)+1
     s.r:SetAttribute('KZBrushResetCount',s.resetCount)
     s.r:SetAttribute('KZBrushLastResetReason',reason or 'StateReset')
@@ -174,7 +174,7 @@ local function ladderStep(s,input,dt,zone)
             return true,true
         elseif attached or into>.15 then
             s.ladder=ladder;m:invalidate('Ladder');m.flight=nil;m.grounded=false;m.waterJumpUntil=nil;m.waterJumpVelocity=nil;m.surfNormal=nil;m.surfPart=nil
-            m.contactPlanes=nil;m.groundNormal=nil;m.landingVelocity=nil;m.landingSpeed=nil
+            m.contactPlanes=nil;m.lastTracePlane=nil;m.groundNormal=nil;m.landingVelocity=nil;m.landingSpeed=nil
             m.baseVelocity=Vector3.zero
             m.time=m.time+dt;m.v=Core.ladderVelocity(motion*(m.duck and Core.Profile.LadderDuckSpeed or Core.Profile.LadderSpeed),normal)*s.unit
             local top=ladder.bounds[2][3]
@@ -207,7 +207,8 @@ local function ladderStep(s,input,dt,zone)
 end
 local function telemetry(s)
     local m,r=s.motor,s.r
-    r:SetAttribute('KZMovementBuild','2026-10-20-r2')
+    r:SetAttribute('KZMovementBuild','2026-10-20-r3')
+    r:SetAttribute('KZRampCorrections',s.world.rampRetries or 0)
     r:SetAttribute('KZSeamRecoveries',m.recoveries or 0)
     r:SetAttribute('KZGroundCorrections',m.groundCorrections or 0)
     r:SetAttribute('KZSurfing',s.ladder==nil and m.surfNormal~=nil)

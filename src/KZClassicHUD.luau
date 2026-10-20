@@ -112,7 +112,7 @@ local anglesText = label(timerPanel, "Angles", "ANG: —   —   —", 8, 200, 4
     Config.Text, Config.NumberFont)
 local checkpointsText = label(timerPanel, "Checkpoints", "CP: —/— TPs: —", 8, 221, 404, 19, 16,
     Config.Text, Enum.Font.RobotoCondensed)
-label(canvas,"Build","KZ · V7.21",12,12,112,18,12,Config.Muted)
+label(canvas,"Build","KZ · V7.22",12,12,112,18,12,Config.Muted)
 local waterHint=label(canvas,"WaterHint","Space — всплыть · W + Space — выйти на край",8,38,440,22,14,Config.Accent)
 waterHint.Visible=false
 local movementNotice=label(canvas,"MovementNotice","Новое движение не запустилось. Причина ошибки — в консоли F9.",8,64,560,22,14,Color3.fromRGB(245,170,100))
