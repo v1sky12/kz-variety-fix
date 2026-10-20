@@ -9,6 +9,7 @@ local PhysicsService = game:GetService("PhysicsService")
 local shared = ReplicatedStorage:WaitForChild("KZClassic", 15)
 assert(shared, "Install KZClassic shared modules first")
 local Data = require(shared:WaitForChild("KZMapData"))
+local Core = require(shared:WaitForChild("KZClassicCore"))
 local Net = shared:WaitForChild("Action")
 local map = Data.findMap(workspace) or workspace:WaitForChild("KZ_Variety_CS2_ROBLOX_V21",15)
 assert(map and map:IsA("Model"), "Active V21/V20/V19/V18/V17 map is missing")
@@ -51,10 +52,16 @@ local function grounded(player)
     -- normal. A centre ray incorrectly reports air when standing on an edge.
     local height=motion and now()-motion.received<.3 and motion.height or (state and state.crouched and 54 or 72)
     local feet=r.Position-Vector3.new(0,h.HipHeight+r.Size.Y/2,0)
+    local water=Data.modifiers(map,Data.sourcePoint(map,feet),height,state)
+    if water.water or water.waterLevel>0 and velocity.Y>0 then return false end
     local center=feet+Vector3.new(0,(height/2+.05)*unit,0)
-    local hit=workspace:Blockcast(CFrame.new(center),Vector3.new(31.998,height-.002,31.998)*unit,
-        Vector3.new(0,-2.05*unit,0),params)
-    return hit and hit.Normal.Y >= .7 or false
+    local adapter={trace=function(_,position,delta,half)
+        local native=workspace:Blockcast(CFrame.new(position),half*2,delta,params)
+        local fraction=native and math.clamp(native.Distance/delta.Magnitude,0,1) or 1
+        return {fraction=fraction,normal=native and native.Normal,position=position+delta*fraction}
+    end}
+    local hit=Core.traceGround(adapter,center,Vector3.new(0,-2.05*unit,0),Vector3.new(15.999,height/2-.001,15.999)*unit,unit)
+    return hit.fraction<1 and hit.normal and hit.normal.Y>=Core.Profile.WalkableNormal or false
 end
 local function resetCheckpoints(player, s, resetTeleports)
     s.checkpoints = {}; s.index = 0
@@ -282,6 +289,14 @@ local function push(player, s, e, condition)
         Net:FireClient(player, "Push", amount, {absolute[2],absolute[3],absolute[1]}, s.teleportSerial,absolute)
     end
 end
+local function legacyPush(player,s,e,duration)
+    local pitch,yaw=(e.properties.pushdir or '0 0 0'):match('([^ ]+) +([^ ]+)')
+    pitch,yaw=math.rad(number(pitch,0)),math.rad(number(yaw,0))
+    local speed=number(e.properties.speed,100)*duration
+    local velocity=Data.worldVector(map,{math.cos(pitch)*math.cos(yaw)*speed,
+        math.cos(pitch)*math.sin(yaw)*speed,-math.sin(pitch)*speed})
+    Net:FireClient(player,'Push',velocity,{false,false,false},s.teleportSerial)
+end
 local function action(player, name, payload)
     local s = states[player]; if not s then return end
     local time = now()
@@ -504,7 +519,8 @@ local function zoneEvents(s,feet,height,span,time)
     for order,e in ipairs(Data.zones) do
         local kind=e.triggerType
         local bhop=Blocks.isBhop(e)
-        local bounds=e.class=="func_water" and Data.waterBounds(map,e) or e.bounds
+        local bounds=e.class=="func_water" and Data.waterBounds(map,e)
+            or e.class=='func_conveyor' and Data.conveyorBounds(e) or e.bounds
         local inside=bhop and Data.bhopIntersects(e,feet,height) or not bhop and Data.intersects(bounds,feet,height)
         local enter,leave
         if canSweep and not bhop then enter,leave=Data.sweepIntersects(bounds,s.previousFeet,feet,height) end
@@ -549,10 +565,6 @@ connect(RunService.Heartbeat, function(dt)
             attr(player, "ServerGrounded", onGround)
             local velocity=s.motion and time-s.motion.received<.3 and s.motion.velocity or r.AssemblyLinearVelocity
             attr(player, "ServerSpeedUnits", Vector3.new(velocity.X,0,velocity.Z).Magnitude / unit)
-            if s.sentRevision~=s.mapRevision then
-                Net:FireClient(player,"ZoneState",{disabled=s.disabled,attributes=s.attributes,activatorName=s.activatorName},nil,s.teleportSerial)
-                s.sentRevision=s.mapRevision
-            end
             local departurePending=s.bhopAwaitDepartureUntil and time<s.bhopAwaitDepartureUntil
             local departureAcknowledged=departurePending and not onGround
             if not onGround or not departurePending then s.bhopAwaitDepartureUntil=nil end
@@ -587,6 +599,9 @@ connect(RunService.Heartbeat, function(dt)
                         elseif kind==2 and s.runState=="Running" then resetCheckpoints(player,s,false)
                         elseif kind==9 then attr(player,"Stage",number(e.properties.timer_zone_stage_number,1))
                         elseif kind==14 then push(player,s,e,"start_touch") end
+                        if e.class=='trigger_push' and e.properties.triggeronstarttouch=='1' then
+                            legacyPush(player,s,e,1)
+                        end
                     else
                         local triggerWarp=Blocks.shouldTeleport(s,e,crossingTime,onGround and not departurePending,s.touches[e.id])
                         if Blocks.isBhop(e) then
@@ -598,17 +613,13 @@ connect(RunService.Heartbeat, function(dt)
                         end
                         if triggerWarp and teleportEntity(player,s,e) then warped=true;break end
                         if kind==14 then push(player,s,e,"touch") end
-                        if e.class=="trigger_push" then
-                            local pitch,yaw=(e.properties.pushdir or "0 0 0"):match("([^ ]+) +([^ ]+)")
-                            pitch,yaw=math.rad(number(pitch,0)),math.rad(number(yaw,0))
-                            local speed=number(e.properties.speed,100)*event.duration
-                            local v=Data.worldVector(map,{math.cos(pitch)*math.cos(yaw)*speed,math.cos(pitch)*math.sin(yaw)*speed,-math.sin(pitch)*speed})
-                            Net:FireClient(player,"Push",v,{false,false,false},s.teleportSerial)
-                        elseif e.class=="func_conveyor" and onGround then
+                        if e.class=="trigger_push" and e.properties.triggeronstarttouch~='1' then
+                            legacyPush(player,s,e,event.duration)
+                        elseif e.class=="func_conveyor" and onGround and not (s.motion and time-s.motion.received<.3) then
                             local _,yaw=(e.properties.movedir or "0 0 0"):match("([^ ]+) +([^ ]+)")
                             yaw=math.rad(number(yaw,0))
                             local speed=number(e.properties.speed,0)*event.duration
-                            Net:FireClient(player,"Push",Data.worldVector(map,{math.cos(yaw)*speed,math.sin(yaw)*speed,0}),{false,false,false},s.teleportSerial)
+                            Net:FireClient(player,"Push",Data.worldVector(map,{math.cos(yaw)*speed,math.sin(yaw)*speed,0}),{false,false,false},s.teleportSerial,nil,'LegacyConveyor')
                         end
                     end
                 end
@@ -638,6 +649,12 @@ connect(RunService.Heartbeat, function(dt)
             end
             s.wasGrounded = not warped and onGround
             if not warped then s.previousFeet=feet end
+            -- Include I/O executed during this Heartbeat instead of delaying
+            -- gravity/duck/filter prediction until the following server frame.
+            if s.sentRevision~=s.mapRevision then
+                Net:FireClient(player,"ZoneState",{disabled=s.disabled,attributes=s.attributes,activatorName=s.activatorName},nil,s.teleportSerial)
+                s.sentRevision=s.mapRevision
+            end
         end
     end
     for target in pairs(states) do
@@ -669,4 +686,4 @@ connect(script.Destroying, function()
         if command:IsA("TextChatCommand") and command.Name:sub(1, 10) == "KZClassic_" then command:Destroy() end
     end
 end)
-print("KZ Classic V7.18 gameplay ready: ordered swept zones, Source ground footprint, CP view, session PRO/TP records")
+print("KZ Classic V7.20 ready: bound Source zones, shared ground checks, start-touch boosters and conveyor compatibility")

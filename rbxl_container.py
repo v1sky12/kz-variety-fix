@@ -13,6 +13,7 @@ from pathlib import Path
 import struct
 
 import zstandard
+import lz4.block
 
 MAGIC = b"<roblox!\x89\xff\r\n\x1a\n"
 MAX_CHUNK = 256 * 1024 * 1024
@@ -91,8 +92,13 @@ def chunks(data: bytes) -> list[Chunk]:
             raise ContainerError(f"invalid {tag!r} chunk size at byte {position}")
         raw = data[position + 16:end]
         try:
-            payload = zstandard.ZstdDecompressor().decompress(raw, max_output_size=MAX_CHUNK) if compressed else raw
-        except zstandard.ZstdError as error:
+            if not compressed:
+                payload = raw
+            elif raw.startswith(b"\x28\xb5\x2f\xfd"):
+                payload = zstandard.ZstdDecompressor().decompress(raw, max_output_size=MAX_CHUNK)
+            else:
+                payload = lz4.block.decompress(raw, uncompressed_size=uncompressed)
+        except (zstandard.ZstdError, lz4.block.LZ4BlockError) as error:
             raise ContainerError(f"cannot decompress {tag!r} at byte {position}: {error}") from error
         if len(payload) != uncompressed:
             raise ContainerError(f"incorrect decompressed length for {tag!r}")
@@ -239,6 +245,221 @@ def encode_references(values: list[int]) -> bytes:
 def encode_chunk(tag: bytes, payload: bytes) -> bytes:
     compressed = zstandard.ZstdCompressor(level=3).compress(payload)
     return tag + struct.pack("<III", len(compressed), len(payload), 0) + compressed
+
+
+def declarations(data: bytes) -> dict[int, tuple[bytes, list[int]]]:
+    result = {}
+    for chunk in chunks(data):
+        if chunk.tag == b"INST":
+            name, offset = read_string(chunk.payload, 4)
+            count = uint(chunk.payload, offset + 1)
+            result[uint(chunk.payload, 0)] = (name, decode_references(chunk.payload[offset + 5:offset + 5 + count * 4], count))
+    return result
+
+
+def audit_kz_runtime(data: bytes) -> dict:
+    """Require the canonical KZ runtime scripts, with no duplicate controllers.
+
+    ServerStorage backups and shared ModuleScripts do not count as starter
+    controllers. This is a package layout check, not execution of user code.
+    """
+    from collections import Counter
+    report = validate(data)
+    kinds = {ref: name for name, refs in declarations(data).values() for ref in refs}
+    expected = {
+        "StarterPlayer/StarterPlayerScripts/KZClassicControls",
+        "StarterPlayer/StarterPlayerScripts/KZClassicHUD",
+        "StarterPlayer/StarterPlayerScripts/KZClassicCrouchPose",
+        "StarterPlayer/StarterPlayerScripts/KZClassicChat",
+        "StarterPlayer/StarterPlayerScripts/KZClassicMovement",
+        "ServerScriptService/KZClassicGameplay",
+    }
+    scopes = ("Workspace/", "StarterPlayer/", "StarterGui/", "ServerScriptService/", "ReplicatedFirst/")
+    active = Counter(report["paths"][ref] for ref in report["sources"]
+                     if kinds[ref] != b"ModuleScript" and not report["disabled"].get(ref, False)
+                     and report["paths"][ref].startswith(scopes))
+    unexpected = sorted(path for path in active if path not in expected or active[path] != 1)
+    missing = sorted(expected - active.keys())
+    if unexpected or missing:
+        raise ContainerError(f"KZ runtime controller conflict or incomplete package: unexpected={unexpected}, missing={missing}")
+    return {"runtime_script_count": sum(active.values()), "runtime_scripts": sorted(active)}
+
+
+def property_values(payload: bytes, count: int) -> list[bytes]:
+    """Split supported typed arrays without decoding or rounding their values."""
+    _, _, kind, offset = property_header(payload)
+    raw = payload[offset:]
+    if kind == 1:
+        return read_strings(payload, offset, count)
+    if kind == 2:
+        if len(raw) != count:
+            raise ContainerError("incorrect boolean array size")
+        return [bytes([v]) for v in raw]
+    if kind in (4, 14, 16):
+        rotations = [b""] * count
+        components = 1 if kind == 4 else 3
+        if kind == 16:
+            cursor = 0
+            for index in range(count):
+                if cursor >= len(raw):
+                    raise ContainerError("truncated CFrame rotation")
+                size = 37 if raw[cursor] == 0 else 1
+                rotations[index] = raw[cursor:cursor + size]
+                cursor += size
+            raw = raw[cursor:]
+        if len(raw) != components * count * 4:
+            raise ContainerError("incorrect numeric property array size")
+        return [rotations[i] + bytes(raw[c * count * 4 + row * count + i]
+                                    for c in range(components) for row in range(4)) for i in range(count)]
+    raise ContainerError(f"unsupported property patch type: {kind}")
+
+
+def encode_property_values(kind: int, values: list[bytes]) -> bytes:
+    if kind == 1:
+        return b"".join(write_string(v) for v in values)
+    if kind == 2:
+        if any(v not in (b"\0", b"\1") for v in values):
+            raise ContainerError("invalid boolean patch")
+        return b"".join(values)
+    if kind in (4, 14, 16):
+        prefix = b""
+        components = 1 if kind == 4 else 3
+        if kind == 16:
+            rotations = [v[:-12] for v in values]
+            if any(len(r) != (37 if r and r[0] == 0 else 1) for r in rotations):
+                raise ContainerError("invalid CFrame rotation patch")
+            prefix = b"".join(rotations)
+            values = [v[-12:] for v in values]
+        if any(len(v) != components * 4 for v in values):
+            raise ContainerError("invalid numeric patch size")
+        return prefix + bytes(v[c * 4 + row] for c in range(components) for row in range(4) for v in values)
+    raise ContainerError(f"unsupported property patch type: {kind}")
+
+
+def replace_scene_properties(data: bytes, model: bytes, edits: dict[int, dict]) -> bytes:
+    """Copy only declared values from isolated, named patch instances.
+
+    Existing array values retain their exact encoded bytes, including opaque
+    AttributesSerialize values and compact/expanded CFrame rotation formats.
+    """
+    before, patch = validate(data), validate(model)
+    classes, patch_classes = declarations(data), declarations(model)
+    patch_ids = {path: ref for ref, path in patch["paths"].items()}
+    wanted = {}
+    for target, edit in edits.items():
+        if before["paths"].get(target) != edit["path"]:
+            raise ContainerError(f"scene patch target moved: {target}")
+        source = patch_ids.get(f"Target_{target}")
+        if source is None:
+            raise ContainerError(f"scene patch instance missing: {target}")
+        for name in edit["properties"]:
+            if name in ("Source", "Name", "Parent", "Disabled"):
+                raise ContainerError("scene patch cannot modify identity or scripts")
+            wanted[(source, name.encode())] = target
+    replacements = {}
+    for chunk in chunks(model):
+        if chunk.tag != b"PROP":
+            continue
+        cid, name, kind, _ = property_header(chunk.payload)
+        ids = patch_classes[cid][1]
+        relevant = [ref for ref in ids if (ref, name) in wanted]
+        if relevant:
+            values = property_values(chunk.payload, len(ids))
+            for ref, value in zip(ids, values):
+                if (ref, name) in wanted:
+                    replacements[(wanted[(ref, name)], name)] = (kind, value)
+    if len(replacements) != len(wanted):
+        raise ContainerError("patch model omits a declared property")
+    output, applied = [data[:32]], set()
+    for chunk in chunks(data):
+        if chunk.tag == b"PROP":
+            cid, name, kind, offset = property_header(chunk.payload)
+            ids = classes[cid][1]
+            if any((ref, name) in replacements for ref in ids):
+                values = property_values(chunk.payload, len(ids))
+                for index, ref in enumerate(ids):
+                    if (ref, name) in replacements:
+                        patch_kind, value = replacements[(ref, name)]
+                        if patch_kind != kind:
+                            raise ContainerError("scene property type mismatch")
+                        values[index] = value
+                        applied.add((ref, name))
+                output.append(encode_chunk(chunk.tag, chunk.payload[:offset] + encode_property_values(kind, values)))
+                continue
+        output.append(chunk.encoded)
+    if applied != set(replacements):
+        raise ContainerError("target place omits a declared property")
+    result = b"".join(output)
+    after = validate(result)
+    if before["paths"] != after["paths"] or before["sources"] != after["sources"] or before["disabled"] != after["disabled"]:
+        raise ContainerError("scene patch changed instance identity or scripts")
+    return result
+
+
+def append_block_model(data: bytes, model: bytes, parent: int, root_name: str) -> bytes:
+    """Append a Folder/Part subtree without rewriting existing class groups."""
+    before, added = validate(data), validate(model)
+    if parent not in before["paths"] or added["scripts"]:
+        raise ContainerError("invalid block model or destination")
+    root_path = before["paths"][parent] + "/" + root_name
+    if root_path in before["paths"].values():
+        raise ContainerError("block subtree already exists")
+    old_classes, new_classes = declarations(data), declarations(model)
+    if any(name not in (b"Folder", b"Part") for name, _ in new_classes.values()):
+        raise ContainerError("block additions support only Folder and Part")
+    if [p for p in added["paths"].values() if "/" not in p] != [root_name]:
+        raise ContainerError("block model must contain exactly its declared root")
+    ids = {old: max(before["paths"]) + 1 + i for i, old in enumerate(sorted(added["paths"]))}
+    cids = {old: max(old_classes) + 1 + i for i, old in enumerate(sorted(new_classes))}
+    declarations_out, properties_out, new_ids, new_parents = [], [], [], []
+    for chunk in chunks(model):
+        if chunk.tag == b"INST":
+            cid = uint(chunk.payload, 0)
+            name, offset = read_string(chunk.payload, 4)
+            if chunk.payload[offset] != 0:
+                raise ContainerError("block model cannot add a service")
+            refs = new_classes[cid][1]
+            payload = struct.pack("<I", cids[cid]) + write_string(name) + b"\0" + struct.pack("<I", len(refs)) + encode_references([ids[r] for r in refs])
+            declarations_out.append(encode_chunk(b"INST", payload))
+        elif chunk.tag == b"PROP":
+            cid, name, kind, offset = property_header(chunk.payload)
+            payload = struct.pack("<I", cids[cid]) + chunk.payload[4:]
+            if kind in (28, 29):
+                raise ContainerError("shared strings or protected script data unsupported in block model")
+            if kind == 19:
+                refs = decode_references(chunk.payload[offset:], len(new_classes[cid][1]))
+                if any(r != -1 and r not in ids for r in refs):
+                    raise ContainerError("external reference in block model")
+                payload = payload[:offset] + encode_references([ids[r] if r != -1 else -1 for r in refs])
+            properties_out.append(encode_chunk(b"PROP", payload))
+        elif chunk.tag == b"PRNT":
+            count = uint(chunk.payload, 1)
+            refs = decode_references(chunk.payload[5:5 + count * 4], count)
+            parents = decode_references(chunk.payload[5 + count * 4:], count)
+            new_ids.extend(ids[r] for r in refs)
+            new_parents.extend(parent if r == -1 else ids[r] for r in parents)
+        elif chunk.tag != b"END\0":
+            raise ContainerError(f"unsupported block model chunk: {chunk.tag!r}")
+    header = bytearray(data[:32])
+    struct.pack_into("<II", header, 16, before["classes"] + added["classes"], before["instances"] + added["instances"])
+    output, parent_tables = [bytes(header)], 0
+    for chunk in chunks(data):
+        if chunk.tag == b"PRNT":
+            parent_tables += 1
+            count = uint(chunk.payload, 1)
+            refs = decode_references(chunk.payload[5:5 + count * 4], count)
+            parents = decode_references(chunk.payload[5 + count * 4:], count)
+            output.extend(declarations_out + properties_out)
+            output.append(encode_chunk(b"PRNT", b"\0" + struct.pack("<I", count + len(new_ids)) + encode_references(refs + new_ids) + encode_references(parents + new_parents)))
+        else:
+            output.append(chunk.encoded)
+    if parent_tables != 1:
+        raise ContainerError("block insertion requires one parent table")
+    result = b"".join(output)
+    after = validate(result)
+    if any(after["paths"][r] != path for r, path in before["paths"].items()) or after["sources"] != before["sources"] or after["disabled"] != before["disabled"]:
+        raise ContainerError("block insertion changed an existing instance")
+    return result
 
 
 def add_module_script(data: bytes, instance: int, parent: int, name: str, source: bytes) -> bytes:

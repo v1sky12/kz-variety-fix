@@ -33,6 +33,37 @@ local function cube(x0,y0,z0,x1,y1,z1)
     return Collision.fromVertices(vv,'box')
 end
 test('ground friction matches CKZ stop speed',function() near(Core.friction(V(100,0,0),.01).X,94.8) end)
+test('conveyor carries a resting player at its speed without accumulating acceleration',function()
+    local m=Motor.new(floorWorld(),Core,V(0,36.001,0),1);m.grounded=true
+    for _=1,128 do m:tick(input(false),1/128,{conveyor=V(95,0,0)}) end
+    near(m.p.X,95);near(m.v.X,95);near(m.baseVelocity.X,95)
+    m:tick(input(false),1/128,{})
+    near(m.v.X,0);near(m.baseVelocity.Magnitude,0)
+end)
+test('conveyor momentum is inherited once on a jump and does not repeat in the air',function()
+    local m=Motor.new(floorWorld(),Core,V(0,36.001,0),1)
+    m.grounded=true;m.v=V(95,0,0);m.baseVelocity=V(95,0,0);m.lastLand=0;m.landingVelocity=Vector3.zero
+    assert(m:tick(input(true),1/128,{conveyor=V(95,0,0)}));near(m.v.X,95)
+    assert(not m.flight.valid and m.flight.reason=='BaseVelocity')
+    m:tick(input(false),1/128,{conveyor=V(95,0,0)});near(m.v.X,95);near(m.baseVelocity.Magnitude,0)
+end)
+test('walking off a conveyor keeps its momentum once after losing ground',function()
+    local w=Collision.world({cube(-100,-20,-100,0,0,100)},64)
+    local m=Motor.new(w,Core,V(15.8,36.001,0),1);m.grounded=true;m.v=V(95,0,0);m.baseVelocity=V(95,0,0)
+    m:tick(input(false),1/128,{conveyor=V(95,0,0)})
+    assert(not m.grounded);near(m.v.X,95);near(m.baseVelocity.Magnitude,0)
+    m:tick(input(false),1/128,{conveyor=V(95,0,0)});near(m.v.X,95)
+end)
+test('conveyor surface tolerance accepts the imported face and excludes contact from below',function()
+    local saved=Data.zones
+    Data.zones={{id='belt',class='func_conveyor',triggerType=0,bounds={{-64,-64,-32},{64,64,0}},properties={speed='95',movedir='0 180 0'}}}
+    local belt=Data.modifiers(map(.7),V(0,0,2.8),72)
+    local source=Data.sourceVector(map(.7),belt.conveyor);near(source.X,-95);near(source.Y,0)
+    near(Data.modifiers(map(0),V(0,0,4),72).conveyor.Magnitude,0)
+    near(Data.modifiers(map(0),V(0,0,-100),72).conveyor.Magnitude,0)
+    near(Data.modifiers(map(0),V(0,0,0),72,{disabled={belt=true}}).conveyor.Magnitude,0)
+    Data.zones=saved
+end)
 test('air accel caps projection, not existing speed',function()
     local v=Core.accelerate(V(500,0,0),V(0,0,1),250,100,1/128,30)
     near(v.X,500);near(v.Z,30)
@@ -94,6 +125,16 @@ test('dry motor clears water telemetry on ladder transition',function()
     m:tick(input(false),1/128,{water=true});m:tick(input(false),1/128,{})
     assert(m.water==false)
 end)
+test('swimming upward from the bottom is not cancelled by the ground probe',function()
+    local m=Motor.new(floorWorld(),Core,V(0,36.001,0),1);m.grounded=true
+    for _=1,32 do m:tick(input(true),1/128,{water=true,waterLevel=2}) end
+    assert(m:feet().Y>10 and m.v.Y>90 and not m.grounded,'ground snap prevented surfacing')
+end)
+test('ankle water invalidates jumpstats without disabling the grounded jump',function()
+    local m=Motor.new(floorWorld(),Core,V(0,36.001,0),1);m.grounded=true
+    assert(m:tick(input(true),1/128,{water=false,waterLevel=1}))
+    assert(m.flight and not m.flight.valid and m.flight.reason=='Water')
+end)
 test('brush trace detects deep starting overlap',function()
     local w=Collision.world({cube(-10,-10,-10,10,10,10)},8)
     assert(w:trace(V(0,0,0),V(0,0,0),V(1,1,1)).startSolid)
@@ -103,6 +144,27 @@ test('brush boundary allows tangent travel and leaving wall',function()
     assert(Collision.sweepBrush(b,V(1,0,0),V(0,0,5),V(1,1,1))==nil)
     assert(Collision.sweepBrush(b,V(1,0,0),V(5,0,0),V(1,1,1))==nil)
     assert(Collision.sweepBrush(b,V(1,0,0),V(-5,0,0),V(1,1,1)).fraction==0)
+end)
+test('CKZ ground trace rejects a thin bevel over a steep ramp beside a wall',function()
+    local vertices={}
+    for _,x in ipairs({-300,300}) do for _,z in ipairs({-100,100}) do
+        vertices[#vertices+1]=V(x,-1000,z);vertices[#vertices+1]=V(x,-4*x/3,z)
+    end end
+    local ramp=Collision.fromVertices(vertices,'steep')
+    local bevel=cube(-16.03,0,-100,-15.97,21.45,100)
+    local wall=cube(-30,21.45,-100,-16.03,100,100)
+    local w=Collision.world({ramp,bevel,wall},64)
+    local p,half=V(0,57.5,0),V(16,36,16)
+    local raw=w:trace(p,V(0,-2,0),half);assert(raw.normal.Y>=.7)
+    local fixed=Core.traceGround(w,p,V(0,-2,0),half,1)
+    assert(fixed.groundCorrected and fixed.normal.Y<.7,'bevel became a fake standable floor')
+    local m=Motor.new(w,Core,p,1);m:categorize();assert(not m.grounded)
+    m.v=V(0,0,800);m:tick(input(false),1/128,{})
+    assert(m.v.Z>799,'fake ground applied friction to the surf tangent')
+    -- Without the confirming wall, preserve the legitimate narrow floor.
+    local edge=Collision.world({ramp,bevel},64)
+    local retained=Core.traceGround(edge,p,V(0,-2,0),half,1)
+    assert(not retained.groundCorrected and retained.normal.Y>=.7)
 end)
 test('two-plane corner preserves only allowed movement',function()
     local w=Collision.world({cube(5,-10,-10,10,10,10),cube(-10,-10,5,10,10,10)},8)
@@ -198,6 +260,13 @@ test('jumpstats counts turning direction changes and includes dead air in sync',
     m.airGain=1;m:observe(.1,-1,{})
     near(m.flight.strafes,2);near(m.flight.synced/m.flight.eligible*100,200/3)
 end)
+test('landing tick air acceleration contributes to jumpstats sync and gain',function()
+    local m=Motor.new(floorWorld(),Core,V(0,39,0),1);m.v=V(100,-400,0)
+    m:begin('LJ',0);m.flight.time=-.2
+    m:tick({wish=V(0,0,1),side=1},1/128,{})
+    assert(m.grounded and m.result and m.result.sync>99.9 and m.result.gain>4,
+        'the final AirAccelerate call was discarded because the sweep landed')
+end)
 test('tiny imported seam overlap recovers inside a two-unit limit',function()
     local w=Collision.world({cube(-100,-10,-100,100,0,100)},64)
     local p=V(0,35.98,0);local recovered=w:recover(p,V(16,36,16),2)
@@ -276,15 +345,24 @@ test('missed platform reports fail at takeoff plane before falling to lower floo
     for _=1,200 do if m.grounded then break end;m:tick(input(false),1/128,{}) end
     assert(m.grounded);near(m.result.serial,serial)
 end)
-test('old wall contact cannot suppress speed on spatially separate ramp',function()
+test('old wall contact cannot clip allowed tangent on a later ramp',function()
     local n=V(0,.6,.8)
     local w=floorWorld();w.trace=function(_,p,d) return {fraction=1,position=p+d} end
     w.move=function(_,p,v)
-        return p,Core.clip(v*.5,n),{{normal=V(-1,0,0)},{normal=n}},false,{n}
+        return p,Core.clip(v,n),{{normal=V(-1,0,0)},{normal=n}},false,{n}
     end
     local m=Motor.new(w,Core,V(0,50,0),1);m.v=V(800,0,0)
     m:tick(input(false),1/128,{})
     assert(math.sqrt(m.v.X*m.v.X+m.v.Z*m.v.Z)>=799.99)
+    assert(m.v:Dot(n)>=-1e-6)
+end)
+test('surf collision does not manufacture speed by rescaling an uphill projection',function()
+    local n=V(0,.6,.8)
+    local w=floorWorld();w.trace=function(_,p,d) return {fraction=1,position=p+d} end
+    w.move=function(_,p,v) return p,Core.clip(v,n),{{normal=n}},false,{n} end
+    local m=Motor.new(w,Core,V(0,50,0),1);m.v=V(0,0,-800)
+    local initial=m.v.Magnitude;m:tick(input(false),1/128,{})
+    assert(m.v.Magnitude<initial*.7,'surf restored normal momentum as extra tangent energy')
     assert(m.v:Dot(n)>=-1e-6)
 end)
 test('anti-bhop delay uses strict CKZ boundary',function()

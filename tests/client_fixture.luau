@@ -50,6 +50,7 @@ local clientMap={}
 function clientMap:GetAttribute(n) if n=='KZStudsPerCSUnit' then return 1 end end
 function clientMap:GetPivot() return CFrame.new() end
 function clientMap:GetDescendants() return {floor} end
+function clientMap:FindFirstChild() return nil end
 local workspace={Gravity=800,CurrentCamera={CFrame=CFrame.new()}}
 function workspace:FindFirstChild(n) if n:sub(1,10)=='KZ_Variety' then return clientMap end end
 local ReplicatedStorage={WaitForChild=function() return shared end}

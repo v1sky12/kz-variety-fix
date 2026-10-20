@@ -13,7 +13,8 @@ function M:categorize(sliding)
     self.groundNormal=nil
     if sliding then self.grounded=false;return end
     if self.v.Y>140*self.unit then self.grounded=false;return end
-    local hit=self.world:trace(self.p,Vector3.new(0,-self.core.Profile.GroundProbe*self.unit,0),self:half())
+    local hit=self.core.traceGround(self.world,self.p,Vector3.new(0,-self.core.Profile.GroundProbe*self.unit,0),self:half(),self.unit)
+    if hit.groundCorrected then self.groundCorrections=(self.groundCorrections or 0)+1 end
     self.grounded=not hit.startSolid and hit.fraction<1 and hit.normal and hit.normal.Y>=self.core.Profile.WalkableNormal or false
     if self.grounded then self.p=hit.position;self.groundNormal=hit.normal end
 end
@@ -22,7 +23,7 @@ function M:stayOnGround()
     local up=self.world:trace(self.p,Vector3.new(0,profile.GroundProbe*self.unit,0),self:half())
     if up.startSolid then return end
     local endpoint=self.p-Vector3.new(0,profile.StepHeight*self.unit,0)
-    local down=self.world:trace(up.position,endpoint-up.position,self:half())
+    local down=self.core.traceGround(self.world,up.position,endpoint-up.position,self:half(),self.unit)
     if not down.startSolid and down.fraction>0 and down.fraction<1 and down.normal
         and down.normal.Y>=profile.WalkableNormal then self.p=down.position end
 end
@@ -31,7 +32,7 @@ function M:slopeLanding(incoming,normal,planes)
     local candidate=flat(self.core.clip(incoming,normal))
     if candidate.Magnitude<=flat(incoming).Magnitude+1e-5 then return nil end
     for _,n in ipairs(planes or {}) do
-        if n.Y<self.core.Profile.WalkableNormal and candidate:Dot(n)<-1e-7 then return nil end
+        if n.Y<self.core.Profile.WalkableNormal and candidate:Dot(n)<-math.max(1e-7,candidate.Magnitude*1e-6) then return nil end
     end
     return candidate
 end
@@ -62,12 +63,13 @@ function M:publish(f,feet,endTime,valid,reason)
         pre=f.pre,max=f.max,gain=f.gain,loss=f.loss,peak=f.peak-f.start.Y,
         duration=endTime-f.time,strafes=f.strafes,sync=f.eligible>0 and f.synced/f.eligible*100 or 0,serial=self.serial}
 end
-function M:observe(dt,side,contacts)
+function M:observe(dt,side,contacts,airStep)
     local f=self.flight
     if not f then return end
     local speed=flat(self.v).Magnitude/self.unit
     f.max=math.max(f.max,speed);f.peak=math.max(f.peak,self:feet().Y)
-    if not self.grounded then
+    if airStep==nil then airStep=not self.grounded end
+    if airStep then
         local delta=self.airGain or speed-f.last
         if delta>0 then f.gain=f.gain+delta else f.loss=f.loss-delta end
         -- Dead-air and bad angles are part of the sync denominator in CKZ.
@@ -80,7 +82,7 @@ function M:observe(dt,side,contacts)
     end
     f.last=speed
     for _,t in ipairs(contacts or {}) do
-        if t.normal.Y<.7 then self:invalidate(t.normal.Y<-.1 and 'Ceiling' or 'WallOrSurf') end
+        if t.normal.Y<self.core.Profile.WalkableNormal then self:invalidate(t.normal.Y<-.1 and 'Ceiling' or 'WallOrSurf') end
     end
     if self.grounded and self.time>f.time then
         local feet=f.endFeet or self:feet();local endTime=f.endTime or self.time
@@ -99,24 +101,21 @@ function M:observe(dt,side,contacts)
     end
     f.previousFeet=self:feet()
 end
-local function surfProject(core, v, normal, preserveSpeed)
-    if not normal or normal.Y <= 0 or normal.Y >= .7 then return v, false end
-    local incoming = preserveSpeed or flat(v).Magnitude
-    local clipped = core.clip(v, normal)
-    local horizontal = flat(clipped)
-    if incoming > 1e-5 and horizontal.Magnitude > 1e-5 and horizontal.Magnitude < incoming then
-        -- Scale the tangent vector as a whole. Scaling only X/Z would
-        -- point the corrected velocity back inside an ascending ramp.
-        clipped = clipped * (incoming / horizontal.Magnitude)
-    end
-    return clipped, true
-end
 function M:tick(input,dt,zone)
     zone=zone or {};self.time=self.time+dt
     local profile=self.core.Profile
     local wasGround=self.grounded
+    -- A shallow pool can end less than two units above its floor. Keep the
+    -- ground probe from snapping an ascending swimmer back onto that floor
+    -- immediately after waist water becomes ankle water.
+    local function suppressGround()
+        return zone.slide or zone.water or (zone.waterLevel or 0)>0 and self.v.Y>0
+    end
     self:posture(not zone.forceUnduck and (zone.forceDuck or input.duck==true))
-    self:categorize(zone.slide)
+    self:categorize(suppressGround())
+    local conveyor=self.grounded and not zone.water and zone.conveyor or Vector3.zero
+    if self.grounded then self.v-=self.baseVelocity or Vector3.zero end
+    self.baseVelocity=Vector3.zero
     if self.grounded and not wasGround then
         local projected=not zone.slide and self:slopeLanding(self.v,self.groundNormal,self.contactPlanes)
         if projected then self.v=Vector3.new(projected.X,self.v.Y,projected.Z) end
@@ -161,6 +160,7 @@ function M:tick(input,dt,zone)
     end
     local speedFactor=self.duck and .34 or input.walk and .52 or 1
     local beforeAir=flat(self.v).Magnitude/self.unit
+    local airStep=not self.grounded and not zone.water and not waterJump
     local xz
     if zone.water or waterJump then
         self.core.updatePre(self.pre,flat(self.v)/self.unit,input.wish,false,dt,self.groundAge)
@@ -173,6 +173,9 @@ function M:tick(input,dt,zone)
     self.water=zone.water==true
     if zone.water and not waterJump then
         self:invalidate('Water');self.grounded=false
+        -- Source CheckJumpButton applies a swimming rise impulse each tick;
+        -- it is separate from the 302-unit grounded jump.
+        if input.jump then self.v=Vector3.new(self.v.X,profile.WaterRise*self.unit,self.v.Z) end
         -- WaterMove has its own acceleration: never add AirAccelerate first.
         self.v=self.core.waterMove(self.v/self.unit,input.swim or input.wish,input.jump,dt)*self.unit
         -- Probe a low ledge and clearance above it at waist water level.
@@ -190,10 +193,13 @@ function M:tick(input,dt,zone)
             end
         end
     end
+    -- Friction and acceleration act relative to the conveyor. Add its motion
+    -- once for the sweep; on takeoff this becomes ordinary airborne momentum.
+    self.v+=conveyor
+    if conveyor.Magnitude>1e-6 then self:invalidate('BaseVelocity') end
     local limit=profile.MaxVelocity*self.unit
     self.v=Vector3.new(math.max(-limit,math.min(limit,self.v.X)),math.max(-limit,math.min(limit,self.v.Y)),math.max(-limit,math.min(limit,self.v.Z)))
     local preMoveVelocity=self.v
-    local preMoveHorizontal=flat(self.v).Magnitude
     local contacts,stuck,activePlanes
     self.p,self.v,contacts,stuck,activePlanes=self.world:move(self.p,self.v,self:half(),dt,self.grounded,profile.StepHeight*self.unit)
     self.contactPlanes=activePlanes
@@ -210,18 +216,18 @@ function M:tick(input,dt,zone)
     local landingNormal
     for _,contact in ipairs(contacts or {}) do
         local n=contact.normal
-        if n and n.Y>=.7 and n.Y<.999 and preMoveVelocity.Y<0 then landingNormal=n;break end
+        if n and n.Y>=profile.WalkableNormal and n.Y<.999 and preMoveVelocity.Y<0 then landingNormal=n;break end
     end
     local landingVelocity=preMoveVelocity
     if groundBefore and not jumped and not zone.slide and not zone.water and not stuck then self:stayOnGround() end
     local movedFeet=self:feet()
-    self:categorize(zone.slide)
+    self:categorize(suppressGround())
     if not landingNormal and self.grounded and self.groundNormal and self.groundNormal.Y<.999
         and preMoveVelocity.Y<0 then landingNormal=self.groundNormal end
     if self.grounded and not groundBefore and self.flight then
         local f=self.flight;local landing
         for _,contact in ipairs(contacts or {}) do
-            if contact.normal and contact.normal.Y>=.7 and contact.timeFraction and contact.position then landing=contact;break end
+            if contact.normal and contact.normal.Y>=profile.WalkableNormal and contact.timeFraction and contact.position then landing=contact;break end
         end
         if landing then
             f.endFeet=landing.position-Vector3.new(0,self.height/2*self.unit,0)
@@ -257,10 +263,10 @@ function M:tick(input,dt,zone)
         self:invalidate('EdgeDeparture')
     end
     if not self.grounded then self.v=self.v-Vector3.new(0,gravity*.5*dt,0) else self.v=flat(self.v) end
+    if (zone.waterLevel or 0)>0 then self:invalidate('Water') end
     if zone.disableJumpstats or zone.slide or (zone.jump and zone.jump~=1) or (zone.gravity and zone.gravity~=1) then self:invalidate('MapModifier') end
     if stuck then self:invalidate('StartSolid') end
     self.surfNormal=nil;self.surfPart=nil
-    local surfNormals={};local blockingWall=false
     -- Only planes remaining after the last positive sweep constrain the
     -- final velocity. Historical contacts still invalidate jumpstats, but
     -- must not constrain a later, spatially separate ramp transition.
@@ -270,10 +276,8 @@ function M:tick(input,dt,zone)
         for _,contact in ipairs(contacts or {}) do if contact.normal then normals[#normals+1]=contact.normal end end
     end
     for _,n in ipairs(normals) do
-        if n.Y<=0 then blockingWall=true end
-        if n.Y>0 and (n.Y<.7 or (zone.slide and n.Y<.999999)) then
+        if n.Y>.0001 and (n.Y<profile.WalkableNormal or (zone.slide and n.Y<.999999)) then
             self.surfNormal=n
-            if n.Y<.7 then surfNormals[#surfNormals+1]=n end
         end
     end
     if self.surfNormal then
@@ -283,27 +287,16 @@ function M:tick(input,dt,zone)
             end
         end
     end
-    -- Preserve the speed entering the sweep, then clip against every ramp
-    -- touched this tick. This prevents a seam/transition from compounding
-    -- the speed loss before the correction runs.
-    if #surfNormals>0 and not zone.slide then
-        for _,normal in ipairs(surfNormals) do
-            local candidate=surfProject(self.core,self.v,normal,blockingWall and 0 or preMoveHorizontal)
-            local clear=true
-            for _,n in ipairs(normals) do
-                if candidate:Dot(n)<-1e-6 then clear=false;break end
-            end
-            if clear then self.v=candidate else self.v=self.core.clip(self.v,normal) end
-        end
-    end
-    -- Remaining half-gravity and sequential surf correction must not push
-    -- the final vector back into another active ramp or wall.
+    -- Project remaining half-gravity into the active contact cone. Tangential
+    -- momentum is retained by collision clipping; never rescale it to restore
+    -- speed that was actually directed into a wall or an ascending ramp.
     if not self.grounded then self.v=self.core.clipPlanes(self.v,normals) end
     -- Preserve contact-plane direction if a steep ramp correction reaches
     -- the per-axis velocity limit. Independent axis clamps can re-enter it.
     local maximum=math.max(math.abs(self.v.X),math.abs(self.v.Y),math.abs(self.v.Z))
     if maximum>limit then self.v=self.v*(limit/maximum) end
-    self:observe(dt,input.turn or input.side or 0,contacts)
+    self.baseVelocity=self.grounded and conveyor or Vector3.zero
+    self:observe(dt,input.turn or input.side or 0,contacts,airStep)
     return jumped,stuck
 end
 return M

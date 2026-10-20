@@ -113,7 +113,8 @@ local anglesText = label(timerPanel, "Angles", "ANG: —   —   —", 8, 200, 4
 local checkpointsText = label(timerPanel, "Checkpoints", "CP: —/— TPs: —", 8, 221, 404, 19, 16,
     Config.Text, Enum.Font.RobotoCondensed)
 local controls = new("Frame", timerPanel, {Name = "PracticeControls",
-    Position = UDim2.fromOffset(8, 246), Size = UDim2.fromOffset(404, 21), BackgroundTransparency = 1})
+    Position = UDim2.fromOffset(8, 246), Size = UDim2.fromOffset(404, 21), BackgroundTransparency = 1,
+    Visible = Config.ShowPracticeButtons})
 local function button(text, index)
     return new("TextButton", controls, {Name = text, Text = text,
         Position = UDim2.fromOffset(index * 134, 0), Size = UDim2.fromOffset(132, 21),

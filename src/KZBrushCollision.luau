@@ -3,6 +3,11 @@
 local B={}
 local primitiveCache=setmetatable({}, {__mode='k'})
 local axes={Vector3.new(1,0,0),Vector3.new(0,1,0),Vector3.new(0,0,1)}
+local walkableNormal=Vector3.new(0,.7,0).Y
+-- Roblox Vector3 operations round to float32. Keep plane distances in Luau
+-- numbers and relative to a nearby origin, rather than subtracting two large
+-- world-space dot products on thin, rotated imported faces.
+local function dot(a,b) return a.X*b.X+a.Y*b.Y+a.Z*b.Z end
 local function support(n,h) return math.abs(n.X)*h.X+math.abs(n.Y)*h.Y+math.abs(n.Z)*h.Z end
 local function minv(a,b) return Vector3.new(math.min(a.X,b.X),math.min(a.Y,b.Y),math.min(a.Z,b.Z)) end
 local function maxv(a,b) return Vector3.new(math.max(a.X,b.X),math.max(a.Y,b.Y),math.max(a.Z,b.Z)) end
@@ -50,27 +55,86 @@ function B.fromPart(part)
     local shape=part:IsA('Part') and part.Shape or nil
     local cached=primitiveCache[part]
     if cached and cached.size==part.Size and cached.frame==part.CFrame and cached.shape==shape then return cached.brush end
-    local v={};local h=part.Size*.5
-    local function vertex(x,y,z) v[#v+1]=part.CFrame:PointToWorldSpace(Vector3.new(x*h.X,y*h.Y,z*h.Z)) end
+    -- Most imported floors/walls are cardinal boxes. Their exact Minkowski
+    -- hull has six planes; rebuilding every edge bevel adds no information.
+    if shape==Enum.PartType.Block then
+        local frame=part.CFrame
+        local x,y,z=frame:VectorToWorldSpace(axes[1]),frame:VectorToWorldSpace(axes[2]),frame:VectorToWorldSpace(axes[3])
+        local function cardinal(a)
+            return (a.X==0 or math.abs(a.X)==1) and (a.Y==0 or math.abs(a.Y)==1)
+                and (a.Z==0 or math.abs(a.Z)==1) and math.abs(a.X)+math.abs(a.Y)+math.abs(a.Z)==1
+        end
+        if cardinal(x) and cardinal(y) and cardinal(z) and x:Dot(y)==0 and x:Dot(z)==0 and y:Dot(z)==0 then
+            local h=part.Size*.5
+            local extent=Vector3.new(math.abs(x.X)*h.X+math.abs(y.X)*h.Y+math.abs(z.X)*h.Z,
+                math.abs(x.Y)*h.X+math.abs(y.Y)*h.Y+math.abs(z.Y)*h.Z,
+                math.abs(x.Z)*h.X+math.abs(y.Z)*h.Y+math.abs(z.Z)*h.Z)
+            local planes={}
+            for _,n in ipairs(axes) do
+                local d=support(n,extent);planes[#planes+1]={n=n,d=d};planes[#planes+1]={n=-n,d=d}
+            end
+            local brush={planes=planes,lo=frame.Position-extent,hi=frame.Position+extent,id=part,origin=frame.Position}
+            primitiveCache[part]={size=part.Size,frame=frame,shape=shape,brush=brush}
+            return brush
+        end
+    end
+    local v,faceNormals,edges={},{},{};local h=part.Size*.5
+    local function vertex(x,y,z) v[#v+1]=Vector3.new(x*h.X,y*h.Y,z*h.Z) end
     if part:IsA('WedgePart') then
         for _,x in ipairs({-1,1}) do vertex(x,-1,-1);vertex(x,-1,1);vertex(x,1,1) end
+        faceNormals={-axes[1],axes[1],-axes[2],axes[3],Vector3.new(0,h.Z,-h.Y)}
+        edges={{1,2},{2,3},{3,1},{4,5},{5,6},{6,4},{1,4},{2,5},{3,6}}
     elseif part:IsA('CornerWedgePart') then
         -- Roblox corner wedge has its high corner at local (-X,+Z).
         vertex(-1,-1,-1);vertex(1,-1,-1);vertex(-1,-1,1);vertex(1,-1,1);vertex(-1,1,1)
+        faceNormals={-axes[2],-axes[1],axes[3],Vector3.new(0,h.Z,-h.Y),Vector3.new(h.Y,h.X,0)}
+        edges={{1,2},{2,4},{4,3},{3,1},{1,5},{2,5},{3,5},{4,5}}
     elseif part:IsA('Part') and part.Shape==Enum.PartType.Block then
         for _,x in ipairs({-1,1}) do for _,y in ipairs({-1,1}) do for _,z in ipairs({-1,1}) do vertex(x,y,z) end end end
+        faceNormals={axes[1],-axes[1],axes[2],-axes[2],axes[3],-axes[3]}
+        for i=1,7 do for j=i+1,8 do
+            local a,b=v[i],v[j]
+            if (a.X~=b.X and 1 or 0)+(a.Y~=b.Y and 1 or 0)+(a.Z~=b.Z and 1 or 0)==1 then
+                edges[#edges+1]={i,j}
+            end
+        end end
     else return nil,'Unsupported collidable '..part.ClassName..': '..part:GetFullName() end
-    local brush=B.fromVertices(v,part)
+    local frame=part.CFrame;local origin=frame.Position
+    local planes={};local lo,hi
+    local function add(normal)
+        if normal.Magnitude<1e-10 then return end
+        local n=normal.Unit
+        local localNormal=frame:VectorToObjectSpace(n);local distance=-math.huge
+        for _,point in ipairs(v) do distance=math.max(distance,dot(localNormal,point)) end
+        for _,p in ipairs(planes) do
+            if (p.n-n).Magnitude<1e-6 and math.abs(p.d-distance)<1e-6 then return end
+        end
+        planes[#planes+1]={n=n,d=distance}
+    end
+    -- Topology is known for Roblox primitives. Reconstructing it from rounded
+    -- world vertices can lose entire faces, or fail the whole movement setup.
+    for _,n in ipairs(faceNormals) do add(frame:VectorToWorldSpace(n.Unit)) end
+    for _,axis in ipairs(axes) do add(axis);add(-axis) end
+    for _,edge in ipairs(edges) do
+        local direction=frame:VectorToWorldSpace((v[edge[2]]-v[edge[1]]).Unit)
+        for _,axis in ipairs(axes) do local n=direction:Cross(axis);add(n);add(-n) end
+    end
+    for _,point in ipairs(v) do
+        local p=frame:PointToWorldSpace(point)
+        lo=lo and minv(lo,p) or p;hi=hi and maxv(hi,p) or p
+    end
+    local brush={planes=planes,lo=lo,hi=hi,id=part,origin=origin}
     primitiveCache[part]={size=part.Size,frame=part.CFrame,shape=shape,brush=brush}
     return brush
 end
 function B.sweepBrush(brush,start,delta,half,skin)
     skin=skin or .001
+    if brush.origin then start=start-brush.origin end
     local enter,leave=-math.huge,1
     local normal;local outside=false;local deep=true
     for _,p in ipairs(brush.planes) do
-        local distance=p.n:Dot(start)-p.d-support(p.n,half)
-        local endDistance=distance+p.n:Dot(delta)
+        local distance=dot(p.n,start)-p.d-support(p.n,half)
+        local endDistance=distance+dot(p.n,delta)
         if distance>0 then outside=true end
         if distance>=-skin then deep=false end
         -- A clipped tangent can have an inward dot product at floating-point
@@ -89,12 +153,12 @@ function B.sweepBrush(brush,start,delta,half,skin)
         if deep then return {fraction=0,startSolid=true,allSolid=leave>=1,brush=brush} end
         -- Boundary contact only blocks movement into the brush, never away/tangent.
         for _,p in ipairs(brush.planes) do
-            local q=p.n:Dot(start)-p.d-support(p.n,half)
-            if q>=-skin and p.n:Dot(delta)>=-1e-9 then return nil end
+            local q=dot(p.n,start)-p.d-support(p.n,half)
+            if q>=-skin and dot(p.n,delta)>=-1e-9 then return nil end
         end
         for _,p in ipairs(brush.planes) do
-            local q=p.n:Dot(start)-p.d-support(p.n,half)
-            if q>=-skin and p.n:Dot(delta)<-1e-9 then normal=p.n;break end
+            local q=dot(p.n,start)-p.d-support(p.n,half)
+            if q>=-skin and dot(p.n,delta)<-1e-9 then normal=p.n;break end
         end
         return {fraction=0,normal=normal,brush=brush}
     end
@@ -215,7 +279,7 @@ function World:slide(pos,vel,half,dt)
         -- Only contacts at the same position constrain a corner/crease together.
         if t.fraction>0 then planes={} end
         local duplicate=false
-        for _,n in ipairs(planes) do if n:Dot(t.normal)>1-1e-8 then duplicate=true;break end end
+        for _,n in ipairs(planes) do if n:Dot(t.normal)>1-1e-6 then duplicate=true;break end end
         if not duplicate then planes[#planes+1]=t.normal end
         if duplicate and t.fraction<=1e-6 then
             local separation=t.normal*.002
@@ -223,9 +287,10 @@ function World:slide(pos,vel,half,dt)
             if not clear.startSolid and clear.fraction==1 then pos=clear.position end
         end
         local nextVelocity
+        local epsilon=math.max(1e-7,vel.Magnitude*1e-6)
         for _,n in ipairs(planes) do
             local candidate=B.clip(vel,n);local clear=true
-            for _,other in ipairs(planes) do if candidate:Dot(other)<-1e-7 then clear=false end end
+            for _,other in ipairs(planes) do if candidate:Dot(other)<-epsilon then clear=false end end
             if clear then nextVelocity=candidate;break end
         end
         if not nextVelocity and #planes==2 then
@@ -244,7 +309,7 @@ function World:move(pos,vel,half,dt,grounded,stepHeight)
     if up.startSolid or up.fraction<1 then return direct,dv,contacts,stuck,planes end
     local raised,rv,rc,rs,rp=self:slide(up.position,vel,half,dt)
     local down=self:trace(raised,Vector3.new(0,-stepHeight-0.002,0),half)
-    if rs or down.startSolid or down.fraction==1 or not down.normal or down.normal.Y<.7 then return direct,dv,contacts,stuck,planes end
+    if rs or down.startSolid or down.fraction==1 or not down.normal or down.normal.Y<walkableNormal then return direct,dv,contacts,stuck,planes end
     local function distance(p) local d=p-pos;return d.X*d.X+d.Z*d.Z end
     if distance(down.position)<=distance(direct) then return direct,dv,contacts,stuck,planes end
     rc[#rc+1]=down;rp[#rp+1]=down.normal;return down.position,Vector3.new(rv.X,dv.Y,rv.Z),rc,false,rp

@@ -33,3 +33,12 @@ jobs:
               path.chmod(0o755)
           PY
       - run: python -B build_place.py --check --luau-compile /tmp/luau/luau-compile --rojo /tmp/kz-rojo/rojo
+      - name: Install pinned Lune for Roblox float32 and map tests
+        run: python -B tools/install_lune.py --target /tmp/kz-lune/lune
+      - run: /tmp/kz-lune/lune run tools/float32_regressions.luau
+      - run: /tmp/kz-lune/lune run tools/audit_scene.luau
+      - run: /tmp/kz-lune/lune run tools/verify_scene.luau
+      - run: /tmp/kz-lune/lune run tools/water_map_probe.luau
+      - run: /tmp/kz-lune/lune run tools/conveyor_map_probe.luau
+      - run: /tmp/kz-lune/lune run tools/surf_map_probe.luau
+      - run: /tmp/kz-lune/lune run tools/teleport_audit.luau

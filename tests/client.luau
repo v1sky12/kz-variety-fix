@@ -67,6 +67,20 @@ test('long horizontal ladder permits lateral travel without vertical drift',func
     near(s.motor.p.X,200*100/128);near(s.motor.p.Y,136);assert(s.ladder==ladder)
     Data.ladderSurfaces=saved
 end)
+test('ladder crouch changes the swept hull and uses the actual forced posture speed',function()
+    local s=client.session();local saved=Data.ladderSurfaces
+    local ladder={id=4,axis=1,bounds={{0,-500,0},{1,500,500}}}
+    Data.ladderSurfaces={ladder};s.ladder=ladder;s.ladderUntil=0
+    s.motor.p=Vector3.new(0,136,0);s.motor.height=72;s.motor.duck=false;s.motor.grounded=false
+    local movement={view=Vector3.new(0,0,-1),right=Vector3.new(1,0,0),axis=0,side=1,duck=true}
+    client.ladderStep(s,movement,1/128,{})
+    assert(s.motor.duck and s.motor.height==54);near(s.motor.v.X,68)
+    movement.duck=false;client.ladderStep(s,movement,1/128,{forceDuck=true})
+    assert(s.motor.duck and s.motor.height==54);near(s.motor.v.X,68)
+    client.ladderStep(s,movement,1/128,{forceUnduck=true})
+    assert(not s.motor.duck and s.motor.height==72);near(s.motor.v.X,200)
+    Data.ladderSurfaces=saved
+end)
 test('keyboard water input follows camera pitch while dry wish stays horizontal',function()
     local s=client.session();local frame=workspace.CurrentCamera.CFrame
     workspace.CurrentCamera.CFrame={LookVector=Vector3.new(.8,-.6,0)};keys.W=true
@@ -76,8 +90,16 @@ test('keyboard water input follows camera pitch while dry wish stays horizontal'
 end)
 test('warp clears the cached landing direction before the next jump',function()
     local s=client.session();s.motor.landingVelocity=Vector3.new(450,0,0)
+    s.motor.water=true
+    s.motor.baseVelocity=Vector3.new(95,0,0)
     Net.OnClientEvent:Fire('Warp',3,nil,true,Vector3.zero,CFrame.new(Vector3.new(0,36.001,0)))
-    assert(s.motor.landingVelocity==nil and s.motor.landingSpeed==nil)
+    assert(s.motor.landingVelocity==nil and s.motor.landingSpeed==nil and not s.motor.water)
+    near(s.motor.baseVelocity.Magnitude,0)
+end)
+test('brush motor ignores the compatibility conveyor impulse to avoid adding it twice',function()
+    local s=client.session();s.pushes={}
+    Net.OnClientEvent:Fire('Push',Vector3.new(95,0,0),{false,false,false},s.serial,nil,'LegacyConveyor')
+    assert(#s.pushes==0)
 end)
 test('one second of movement produces the same fixed ticks at 30 60 144 and 240 FPS',function()
     local original=workspace.CurrentCamera.CFrame
@@ -94,6 +116,7 @@ end)
 test('character removal restores humanoid state and releases query resources',function()
     player.CharacterRemoving:Fire(character)
     assert(client.session()==nil);assert(humanoid.EvaluateStateMachine)
+    assert(root:GetAttribute('KZMovementBuild')==nil and root:GetAttribute('KZMovementBackend')==nil)
 end)
 test('fallback releases mutex before enabling saved motor',function()
     client.setup(character)
@@ -101,6 +124,8 @@ test('fallback releases mutex before enabling saved motor',function()
     assert(last('MotorReset').args[1].character==character)
     assert(not player:GetAttribute('KZClassicMotorActive'))
     assert(fallback.Disabled==false and script.Disabled==true)
+    assert(root:GetAttribute('KZMovementBuild')==nil and root:GetAttribute('KZMovementBackend')=='KZClassicFallback')
+    assert(player:GetAttribute('KZBrushFallbackReason')=='forced test failure')
 end)
 print(string.format('CLIENT RESULT %d passed, %d failed',passed,failed))
 assert(failed==0,'client regressions failed')

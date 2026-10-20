@@ -21,6 +21,20 @@ test('ascending player is not server-grounded by zero native velocity',function(
     server.action(p,'Motion',{character=p.Character,teleportSerial=0,sequence=2,feet=Vector3.zero,velocity=Vector3.new(0,200,0)})
     step(.02);assert(not p:GetAttribute('KZServerGrounded'))
 end)
+test('server ground state excludes swimming and an ascending shallow-water exit',function()
+    step(.05)
+    Data.zones={{id='groundWater',class='func_water',triggerType=0,bounds={{-100,-100,-100},{100,100,50}},properties={}}}
+    server.action(p,'Motion',{character=p.Character,teleportSerial=0,sequence=3,feet=Vector3.zero,velocity=Vector3.zero})
+    step(.02);assert(not p:GetAttribute('KZServerGrounded'),'underwater ground disagrees with motor')
+    Data.zones[1].bounds[2][3]=10
+    step(.05)
+    server.action(p,'Motion',{character=p.Character,teleportSerial=0,sequence=4,feet=Vector3.zero,velocity=Vector3.new(0,50,0)})
+    step(.02);assert(not p:GetAttribute('KZServerGrounded'),'ascending swimmer snapped to ground on server')
+    Data.zones={}
+    -- Restore the preceding scenario for the stale/reordered packet assertions.
+    step(.05)
+    server.action(p,'Motion',{character=p.Character,teleportSerial=0,sequence=5,feet=Vector3.zero,velocity=Vector3.new(0,200,0)})
+end)
 test('reordered motion packet cannot rewind state',function()
     step(.05)
     server.action(p,'Motion',{character=p.Character,teleportSerial=0,sequence=1,feet=Vector3.zero,velocity=Vector3.zero})
@@ -69,6 +83,18 @@ test('state snapshots publish changed per-player zone state',function()
     server.applyOutput(p,s,{targetName='!activator',inputName='addattribute',overrideParam='test'})
     step(.02);local event=last('ZoneState',p);assert(event.args[1].attributes.test==1)
     assert(not server.states[p2].attributes.test)
+end)
+test('Source I/O executed inside a heartbeat reaches prediction in that heartbeat',function()
+    local function count()
+        local n=0;for _,event in ipairs(sent) do if event.player==p and event.kind=='ZoneState' then n+=1 end end
+        return n
+    end
+    Data.zones={{id='sameFrameState',class='trigger_multiple',triggerType=0,bounds={{-32,-32,-1},{32,32,1}},properties={},
+        connections={{outputName='OnStartTouch',targetName='!activator',inputName='addattribute',overrideParam='sameFrameReady',delay='0'}}}}
+    s.previousFeet=nil;s.inside={};s.touches={};s.sentRevision=s.mapRevision
+    local before=count();r.CFrame=CFrame.new(Vector3.new(0,36,0));step(.02)
+    near(count(),before+1);assert(last('ZoneState',p).args[1].attributes.sameFrameReady==1)
+    s.attributes.sameFrameReady=nil;Data.zones={}
 end)
 test('warp carries authoritative destination and preserves CP yaw',function()
     step(.1);r.CFrame=CFrame.new(Vector3.new(0,36,0),.8)
@@ -179,6 +205,39 @@ test('continuous trigger push uses actual time spent inside a thin zone',functio
     near(last('Push',p).args[1].Magnitude,1000*.02*34/200)
     Data.zones={}
 end)
+test('start-touch booster applies its full impulse once and rearms after leaving',function()
+    local function count()
+        local n=0;for _,event in ipairs(sent) do if event.player==p and event.kind=='Push' then n+=1 end end
+        return n
+    end
+    step(.1)
+    Data.zones={{id='entryBoost',class='trigger_push',triggerType=0,bounds={{-32,-32,-1},{32,32,1}},
+        properties={pushdir='-90 0 0',speed='450',triggeronstarttouch='1'}}}
+    s.previousFeet=nil;s.inside={};s.touches={}
+    local before=count();r.CFrame=CFrame.new(Vector3.new(0,36,0));step(.02)
+    near(count(),before+1);near(last('Push',p).args[1].Y,450)
+    step(.1);near(count(),before+1)
+    r.CFrame=CFrame.new(Data.worldPoint(serverMap,{200,0,0})+Vector3.new(0,36,0));step(.02)
+    r.CFrame=CFrame.new(Vector3.new(0,36,0));step(.02)
+    near(count(),before+2);near(last('Push',p).args[1].Y,450)
+    Data.zones={}
+end)
+test('filtered start-touch booster waits for eligibility without repeating while inside',function()
+    local function count()
+        local n=0;for _,event in ipairs(sent) do if event.player==p and event.kind=='Push' then n+=1 end end
+        return n
+    end
+    local saved=Data.byName.entryBoostFilter
+    Data.byName.entryBoostFilter={class='filter_activator_attribute_int',properties={filterattribute='entryBoostReady'}}
+    Data.zones={{id='filteredEntryBoost',class='trigger_push',triggerType=0,bounds={{-32,-32,-1},{32,32,1}},
+        properties={pushdir='-90 0 0',speed='670',triggeronstarttouch='1',filtername='entryBoostFilter'}}}
+    s.previousFeet=nil;s.inside={};s.touches={};s.attributes.entryBoostReady=nil
+    local before=count();r.CFrame=CFrame.new(Vector3.new(0,36,0));step(.02);near(count(),before)
+    server.applyOutput(p,s,{targetName='!activator',inputName='addattribute',overrideParam='entryBoostReady'})
+    step(.02);near(count(),before+1);near(last('Push',p).args[1].Y,670)
+    step(.02);near(count(),before+1)
+    s.attributes.entryBoostReady=nil;Data.zones={};Data.byName.entryBoostFilter=saved
+end)
 test('server ground footprint includes an edge missed by the centre ray',function()
     step(.4);groundBounds={-100,0};r.CFrame=CFrame.new(Vector3.new(10,36,0));step(.02)
     assert(p:GetAttribute('KZServerGrounded'),'Source hull still overlaps the platform')
@@ -239,6 +298,27 @@ test('controller single block enforces reuse through real server contact and Jum
     local serial=s.teleportSerial;r.CFrame=CFrame.new(Vector3.new(0,36,0));step(.02)
     near(s.teleportSerial,serial+1);near(Data.feetSource(serverMap,r,{HipHeight=35}).X,300)
     assert(s.lastSingle==nil);Data.zones={}
+end)
+test('server and motor reject the same false ground bevel beside a steep ramp',function()
+    local V=Vector3.new;local vertices={}
+    local function box(x0,y0,z0,x1,y1,z1)
+        local v={}
+        for _,x in ipairs({x0,x1}) do for _,y in ipairs({y0,y1}) do for _,z in ipairs({z0,z1}) do v[#v+1]=V(x,y,z) end end end
+        return Collision.fromVertices(v,'server bevel')
+    end
+    for _,x in ipairs({-300,300}) do for _,z in ipairs({-100,100}) do
+        vertices[#vertices+1]=V(x,-1000,z);vertices[#vertices+1]=V(x,-4*x/3,z)
+    end end
+    local ramp=Collision.fromVertices(vertices,'server ramp')
+    local bevel=box(-16.03,0,-100,-15.97,21.45,100)
+    local wall=box(-30,21.45,-100,-16.03,100,100)
+    local savedFrame,savedMotion=r.CFrame,s.motion
+    s.motion=nil;r.AssemblyLinearVelocity=Vector3.zero;r.CFrame=CFrame.new(V(0,57.5,0))
+    groundWorld=Collision.world({ramp,bevel,wall},64);step(.02)
+    assert(not p:GetAttribute('KZServerGrounded'),'server accepted the bevel rejected by the motor')
+    groundWorld=Collision.world({ramp,bevel},64);step(.02)
+    assert(p:GetAttribute('KZServerGrounded'),'server removed a legitimate narrow floor')
+    groundWorld=nil;r.CFrame=savedFrame;s.motion=savedMotion;s.previousFeet=nil
 end)
 print(string.format('NETWORK RESULT %d passed, %d failed',passed,failed))
 assert(failed==0,'network regressions failed')

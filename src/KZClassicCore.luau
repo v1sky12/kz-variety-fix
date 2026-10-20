@@ -10,7 +10,7 @@ Core.Profile = {
     PreMinAngle = 2, PreFullAngle = 15.5, PreDecayRate = 3,
     PreExponent = 0.5, PreLandingGrace = 0.25,
     PerfWindow = 0.02, BhopMultiplier = 51.5, BhopLandingPenalty = 75,
-    GroundProbe = 2, StepHeight = 18, WalkableNormal = .7,
+    GroundProbe = 2, StepHeight = 18, WalkableNormal = Vector3.new(0,.7,0).Y,
     WaterSpeed = 225, WaterAccel = 10, WaterFriction = 1, WaterSink = 60, WaterRise = 100,
     LadderAngle = -.707, LadderDampen = 1, LadderSpeed = 200, LadderDuckSpeed = 68, LadderJump = 270,
 }
@@ -104,11 +104,34 @@ function Core.clip(v, normal)
     local into = v:Dot(normal)
     return into < 0 and v - normal * into or v
 end
+-- CKZ FixGroundTrace: a hull can touch a tiny horizontal bevel above a steep
+-- ramp and falsely become grounded. Only prefer the smaller hull's ramp when
+-- a nearby wall on the uphill side confirms this is not a real floor edge.
+function Core.traceGround(world,position,delta,half,unit)
+    local hit=world:trace(position,delta,half)
+    if hit.startSolid or hit.fraction==1 or not hit.normal or hit.normal.Y<P.WalkableNormal then return hit end
+    local margin=.0625*unit
+    if half.X<=margin or half.Z<=margin then return hit end
+    local small=world:trace(position,delta,Vector3.new(half.X-margin,half.Y,half.Z-margin))
+    if small.startSolid or small.fraction==1 or not small.normal or small.normal.Y>=P.WalkableNormal then return hit end
+    local uphill=Vector3.new(-small.normal.X,0,-small.normal.Z)
+    if uphill.Magnitude<1e-6 then return hit end
+    local wall=world:trace(hit.position,uphill.Unit*margin,half)
+    if not wall.startSolid and wall.fraction<.5 then
+        local corrected=table.clone(hit);corrected.normal=small.normal;corrected.groundCorrected=true
+        return corrected
+    end
+    return hit
+end
 -- Closest allowed velocity in the contact cone. A single plane projection,
 -- a two-plane crease or the origin covers all active sets in three dimensions.
 function Core.clipPlanes(v, normals)
+    -- Vector3 is float32 in Roblox. A projected tangent can retain a few
+    -- ulps of inward velocity; treating those ulps as a second collision can
+    -- reject every valid candidate and replace surf velocity with zero.
+    local epsilon=math.max(1e-7,v.Magnitude*1e-6)
     local function allowed(candidate)
-        for _,n in ipairs(normals) do if candidate:Dot(n)<-1e-7 then return false end end
+        for _,n in ipairs(normals) do if candidate:Dot(n)<-epsilon then return false end end
         return true
     end
     if allowed(v) then return v end

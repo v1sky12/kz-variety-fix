@@ -78,18 +78,11 @@ function Repair.prepare(source,Data,unit,plan)
             local a,b=water.bounds[1],water.bounds[2]
             local level=b[3]
             if water.levelReference then
-                level=water.levelReference.bounds[2][3]
-                map:SetAttribute(Data.waterLevelAttribute(water.id),level)
+                -- The floor defines the bottom, not the water surface. Lowering
+                -- this volume to the floor made a 40-unit pool ankle deep.
+                map:SetAttribute(Data.waterLevelAttribute(water.id),nil)
                 local original=levelFloors[water.id]
-                original.CanCollide=false;original.CanTouch=false;original.CanQuery=false
-                local da,db=water.dryFloorBounds[1],water.dryFloorBounds[2]
-                local dry=Instance.new("Part");dry.Name="WaterOpeningDryFloor"
-                dry.Size=Vector3.new((db[2]-da[2])*unit,(db[3]-da[3])*unit,(db[1]-da[1])*unit)
-                dry.CFrame=CFrame.new(Data.worldPoint(map,{(da[1]+db[1])/2,(da[2]+db[2])/2,(da[3]+db[3])/2}))*map:GetPivot().Rotation
-                dry.Anchored=true;dry.CanCollide=true;dry.CanTouch=false;dry.CanQuery=true
-                dry.Transparency=1;dry.CastShadow=false;dry.CollisionGroup=original.CollisionGroup
-                dry.CustomPhysicalProperties=original.CustomPhysicalProperties
-                dry.Parent=corrections
+                original.CanCollide=true;original.CanTouch=false;original.CanQuery=true
             end
             local p=Instance.new("Part")
             p.Name=string.format("WaterSurface_%02d",i)
@@ -102,6 +95,7 @@ function Repair.prepare(source,Data,unit,plan)
         end
         map.Name="KZ_Variety_CS2_ROBLOX_V21"
         map:SetAttribute("KZEnvironmentRevision",21)
+        map:SetAttribute("KZWaterDepthRevision",1)
         map:SetAttribute("KZWaterSurfaceCount",11)
         map:SetAttribute("KZWaterLidsDisabled",10)
         map:SetAttribute("KZWaterVisualsHidden",#visuals)

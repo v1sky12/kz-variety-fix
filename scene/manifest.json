@@ -1,0 +1,174 @@
+{
+  "additions": [
+    {
+      "file": "block_zones.rbxm",
+      "rootName": "__KZ_BlockZones"
+    },
+    {
+      "file": "water_opening.rbxm",
+      "rootName": "__KZ_WaterOpeningFix"
+    }
+  ],
+  "counts": {
+    "AntiBhop": 8,
+    "MultiBhop": 8,
+    "SingleBhop": 9,
+    "Teleport": 242
+  },
+  "edits": {
+    "10802": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_02746",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "120": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04145",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "1208": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04141",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "1259": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04987",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "13065": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04894",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "15076": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04988",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "15558": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04147",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "15578": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_01003",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "15925": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00956",
+      "properties": [
+        "CanCollide",
+        "CanQuery",
+        "CanTouch"
+      ]
+    },
+    "16075": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/__KZ_WaterSurfaces/WaterSurface_07",
+      "properties": [
+        "CFrame"
+      ]
+    },
+    "16199": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/__KZ_WaterCorrections/WaterOpeningDryFloor",
+      "properties": [
+        "CanCollide",
+        "CanQuery",
+        "CanTouch"
+      ]
+    },
+    "1904": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00781",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "2323": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04985",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "3328": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04983",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "3795": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00964",
+      "properties": [
+        "CanCollide",
+        "CanQuery",
+        "CanTouch"
+      ]
+    },
+    "4001": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04984",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "6470": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_05002",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "7": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "895": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_03193",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "9321": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04146",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    },
+    "9418": {
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00975",
+      "properties": [
+        "AttributesSerialize"
+      ]
+    }
+  },
+  "mapId": 7,
+  "mapPath": "Workspace/KZ_Variety_CS2_ROBLOX_V22",
+  "originalZones": 267,
+  "revision": 1,
+  "rootName": "__KZ_BlockZones",
+  "verifiedBhopSupports": 17,
+  "waterOpening": {
+    "dryBounds": [
+      [
+        2104,
+        -1207.999755859375,
+        -706.81640625
+      ],
+      [
+        2312.000244140625,
+        -1008,
+        -704.0000610351562
+      ]
+    ],
+    "id": "8c2b1b6f-0b26-422b-92d1-eed9b753bea5",
+    "originalPlate": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00956"
+  }
+}

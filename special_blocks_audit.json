@@ -1,4 +1,5 @@
 {
+  "schema_revision": 2,
   "entities": 718,
   "raw_ladder_faces": 94,
   "counts": {
@@ -1590,5 +1591,1107 @@
       "jump_multiplier": 1.0,
       "slide": false
     }
-  ]
+  ],
+  "legacy_pushes": [
+    {
+      "id": "7e822f87-54d1-44a0-a7aa-80faf1680ed7",
+      "name": "upboost1",
+      "bounds_cs_units": [
+        [
+          2944.0,
+          -3807.999267578125,
+          -426.0
+        ],
+        [
+          3064.0,
+          -3687.999755859375,
+          -106.0
+        ]
+      ],
+      "direction_angles_source": "-90 0 0",
+      "speed": 450.0,
+      "start_touch_impulse": true,
+      "filter": "filter_activator_boost"
+    },
+    {
+      "id": "00cf1bb1-b03d-4c00-b711-e12692d9c78b",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          2272.0,
+          -3016.0,
+          -648.0
+        ],
+        [
+          2448.0,
+          -2872.0,
+          -463.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "603dea50-c801-4dec-88e3-15e5f2743255",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          2544.0,
+          -2424.000244140625,
+          -744.0
+        ],
+        [
+          2760.0,
+          -2240.000244140625,
+          -560.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "6e228845-a3b5-4fa0-babc-0b2c85a69c5b",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          2820.0,
+          -2632.0,
+          -640.0
+        ],
+        [
+          2956.0,
+          -2464.0,
+          -455.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "d1527678-1b3c-4829-9e7a-b9423cb95e1b",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          3596.0,
+          -2480.0,
+          -640.0
+        ],
+        [
+          3728.0,
+          -2360.0,
+          -455.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "6def075c-d359-486b-851b-e56d38a38615",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          3864.0,
+          -2479.999755859375,
+          -640.0
+        ],
+        [
+          4000.0,
+          -2232.000244140625,
+          -455.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "ed23cb8e-8476-47ab-bd21-d819f22eac87",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          2944.000244140625,
+          108.50000762939453,
+          -1008.0
+        ],
+        [
+          3359.999755859375,
+          280.0,
+          -824.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "6045f654-6317-49c9-8ee2-93031f964c10",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          488.0,
+          -1280.0,
+          -616.0
+        ],
+        [
+          672.0,
+          -1024.0,
+          -431.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "ef9ff4fe-7402-4394-ba6e-89a6928f8793",
+      "name": "upboost4",
+      "bounds_cs_units": [
+        [
+          -864.0,
+          -1040.0,
+          -864.0
+        ],
+        [
+          -760.0,
+          -936.0,
+          -731.0
+        ]
+      ],
+      "direction_angles_source": "-90 0 0",
+      "speed": 670.0,
+      "start_touch_impulse": true,
+      "filter": "filter_tp"
+    },
+    {
+      "id": "3535ee49-c927-43dc-8907-68ca8a112fb5",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          -920.0,
+          -1392.0,
+          -280.0000305175781
+        ],
+        [
+          -776.0,
+          -1264.0,
+          -95.9999771118164
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "da0b3559-c47f-461a-ba1e-d5dd31a5938c",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          -128.0,
+          -2472.0,
+          -375.9999694824219
+        ],
+        [
+          208.33941650390625,
+          -2416.0,
+          -267.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "53c46cbc-a616-495c-8e1e-9273b0659735",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          -128.00003051757812,
+          -2496.000244140625,
+          -375.9999694824219
+        ],
+        [
+          -80.00003051757812,
+          -2449.999755859375,
+          -267.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "727e9e8b-4480-448a-bf7d-36cd0e8d00ba",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          152.0,
+          -3048.0,
+          -976.0
+        ],
+        [
+          328.0,
+          -2808.0,
+          -868.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "bc7678fa-be66-4255-bde6-408aac7d0a6d",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          351.9999694824219,
+          -3912.0,
+          -796.0
+        ],
+        [
+          447.9999694824219,
+          -3846.0,
+          -722.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "25a2bed4-cd93-4a46-881c-1cd6d2cb18b3",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          472.0,
+          -4376.0,
+          -880.0
+        ],
+        [
+          656.0,
+          -4288.0,
+          -772.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "7b6c7217-87af-4d0b-bdaf-6e6bd21b3d59",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          928.3441772460938,
+          -4087.99951171875,
+          -1000.0
+        ],
+        [
+          1216.0,
+          -3901.99951171875,
+          -924.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "7980628d-1427-42ab-a0d5-dba1246345b1",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          512.0,
+          1376.0,
+          -1008.0
+        ],
+        [
+          720.0,
+          1608.0,
+          -824.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "29e787f6-b017-4e77-82c8-af1f9039df2b",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          511.9999694824219,
+          735.9998779296875,
+          -944.0
+        ],
+        [
+          720.0,
+          928.0,
+          -760.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "eddcde95-e970-45a0-a097-df770a8f2927",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          3392.0,
+          -4984.0,
+          -722.0
+        ],
+        [
+          3528.0,
+          -4760.0,
+          -538.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "88fbea5c-2111-4df5-82f7-4f81927c6d5e",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          1608.0,
+          -6176.0,
+          -898.0
+        ],
+        [
+          1736.0,
+          -6000.0,
+          -714.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "99dc40bc-ffe2-41b0-8ae4-2589be1296ec",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          1568.0,
+          -5176.0,
+          -600.0
+        ],
+        [
+          1608.0,
+          -5136.0,
+          -415.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "971a5518-1d58-4371-9cbc-87c8f7ea8435",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          1048.0,
+          -4912.0,
+          -216.00003051757812
+        ],
+        [
+          1408.0,
+          -4744.0,
+          -31.999969482421875
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "cdd3fb75-6cca-41cd-b7bc-bc8984987e0d",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          2464.0,
+          -6272.00048828125,
+          -370.0
+        ],
+        [
+          2656.0,
+          -6032.00048828125,
+          -185.99993896484375
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "567753b1-4c4e-4efd-b39d-70db50015980",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          2331.48193359375,
+          -5972.0,
+          -664.0
+        ],
+        [
+          2688.0,
+          -5848.0,
+          -479.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "20d18b53-f7af-4e4e-b2ea-1d159c7cff3c",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          3536.0,
+          -5648.0,
+          -521.0360107421875
+        ],
+        [
+          3691.0,
+          -5504.0,
+          -337.0359802246094
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "ba4a39ae-b5e6-4cf4-99dc-4747b46bbc6b",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          3536.0,
+          -5244.0,
+          -177.00003051757812
+        ],
+        [
+          3824.0,
+          -5025.0,
+          7.000030517578125
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "7f07ff0b-1249-4ad0-8894-65ea75ab7c0e",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          4063.0,
+          -5285.0009765625,
+          -251.00003051757812
+        ],
+        [
+          4356.0,
+          -5032.0,
+          -66.99996948242188
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "fe1959f9-0afb-4d46-ac48-808259e09e73",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          4108.0,
+          -4339.0,
+          -155.0
+        ],
+        [
+          4260.0,
+          -4064.000244140625,
+          29.00006103515625
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "b5580a4c-9786-4b81-9c76-2c39545dfb9b",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          4715.0,
+          -4528.0,
+          -528.0
+        ],
+        [
+          4748.0,
+          -4375.0009765625,
+          -343.9999694824219
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "e1255dfc-da9d-4954-af64-40b0e4ec9918",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          1424.0,
+          -5616.5,
+          -834.0
+        ],
+        [
+          1608.0,
+          -5448.0,
+          -650.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    },
+    {
+      "id": "0b06c49a-fbcb-4eb7-a0b3-0d76549d3940",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          4054.0,
+          -4926.0,
+          -746.0
+        ],
+        [
+          4368.0,
+          -4592.0,
+          -732.0
+        ]
+      ],
+      "direction_angles_source": "-90 0 0",
+      "speed": 70.0,
+      "start_touch_impulse": true,
+      "filter": null
+    },
+    {
+      "id": "7ce72f3e-45ae-4e23-9d6a-51b79821baf0",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          4054.0,
+          -4926.0,
+          -754.0
+        ],
+        [
+          4368.0,
+          -4592.0,
+          -740.0
+        ]
+      ],
+      "direction_angles_source": "-90 0 0",
+      "speed": 70.0,
+      "start_touch_impulse": true,
+      "filter": null
+    },
+    {
+      "id": "4151eff2-5a4f-4b60-9bb3-d8e680b7eaae",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          2480.0,
+          -4720.0,
+          -480.0
+        ],
+        [
+          2680.0,
+          -4448.0,
+          -478.0
+        ]
+      ],
+      "direction_angles_source": "-90 0 0",
+      "speed": 20.0,
+      "start_touch_impulse": false,
+      "filter": null
+    },
+    {
+      "id": "04e5d9b0-6299-484a-bd34-37084a4286f0",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          2480.0,
+          -4720.0,
+          -478.0
+        ],
+        [
+          2680.0,
+          -4448.0,
+          -476.0
+        ]
+      ],
+      "direction_angles_source": "-90 0 0",
+      "speed": 20.0,
+      "start_touch_impulse": false,
+      "filter": null
+    },
+    {
+      "id": "beb012bb-907f-4da0-a1f9-dfa70aaa1d9b",
+      "name": null,
+      "bounds_cs_units": [
+        [
+          -824.0,
+          -1960.0,
+          -784.0
+        ],
+        [
+          -472.0,
+          -1784.0,
+          -676.0
+        ]
+      ],
+      "direction_angles_source": "90 0 0",
+      "speed": 300.0,
+      "start_touch_impulse": false,
+      "filter": "filter_anti"
+    }
+  ],
+  "conveyors": [
+    {
+      "id": "56745f48-30a1-4137-ae08-b329d4e0f2b3",
+      "bounds_cs_units": [
+        [
+          553.306640625,
+          -328.84375,
+          -1575.3515625
+        ],
+        [
+          651.6044921875,
+          -224.984375,
+          -1436.046875
+        ]
+      ],
+      "direction_angles_source": "0 180 0",
+      "speed": 95.0
+    },
+    {
+      "id": "bfa4ec7b-fb23-4299-b189-de2b939fba73",
+      "bounds_cs_units": [
+        [
+          3592.0,
+          -2480.0,
+          -673.02734375
+        ],
+        [
+          3699.0,
+          -2360.0,
+          -641.02685546875
+        ]
+      ],
+      "direction_angles_source": "0 180 0",
+      "speed": 30.0
+    },
+    {
+      "id": "65b72f65-0c92-4063-9d11-281f12ae3840",
+      "bounds_cs_units": [
+        [
+          3392.0,
+          -4952.0,
+          -753.0
+        ],
+        [
+          3528.0,
+          -4832.0,
+          -721.0
+        ]
+      ],
+      "direction_angles_source": "0 -90 0",
+      "speed": 35.0
+    },
+    {
+      "id": "21cf8c0c-f990-45b6-8feb-bee5e0564608",
+      "bounds_cs_units": [
+        [
+          1424.0,
+          -5616.0,
+          -866.0
+        ],
+        [
+          1608.0,
+          -5448.0,
+          -834.0
+        ]
+      ],
+      "direction_angles_source": "0 -90 0",
+      "speed": 35.0
+    },
+    {
+      "id": "1dc39707-66d2-4e03-b5d1-e7b04eb683a9",
+      "bounds_cs_units": [
+        [
+          -1396.0,
+          616.0,
+          -772.0
+        ],
+        [
+          -1220.0,
+          650.0,
+          -771.0
+        ]
+      ],
+      "direction_angles_source": "0 -180 0",
+      "speed": 95.0
+    }
+  ],
+  "water_volumes": [
+    {
+      "id": "1c37063a-8d61-4fd1-b5fe-d4f9fabac9b0",
+      "bounds_cs_units": [
+        [
+          4065.0,
+          -4923.0,
+          -749.0
+        ],
+        [
+          4356.0,
+          -4595.0,
+          -640.0
+        ]
+      ]
+    },
+    {
+      "id": "9534e1d3-ab65-4e57-8c72-b98247f8e870",
+      "bounds_cs_units": [
+        [
+          2856.0,
+          -5153.0,
+          -824.0
+        ],
+        [
+          3320.0,
+          -4760.0,
+          -752.0
+        ]
+      ]
+    },
+    {
+      "id": "3d1c8ffa-d2ff-49af-b056-060b514c00a2",
+      "bounds_cs_units": [
+        [
+          2480.0,
+          -4720.0,
+          -480.0
+        ],
+        [
+          2680.0,
+          -4448.0,
+          -335.0
+        ]
+      ]
+    },
+    {
+      "id": "3b8cb5f0-2f0a-4e6e-b180-57f832fa02e0",
+      "bounds_cs_units": [
+        [
+          2232.0,
+          -4248.0,
+          -208.0
+        ],
+        [
+          2680.0,
+          -4024.0,
+          -136.0
+        ]
+      ]
+    },
+    {
+      "id": "0598bec9-b7d9-428f-9c1c-8a471380bccf",
+      "bounds_cs_units": [
+        [
+          1384.0,
+          -4248.0,
+          -368.0
+        ],
+        [
+          1736.0,
+          -4024.0,
+          -296.0
+        ]
+      ]
+    },
+    {
+      "id": "079872b0-9a0a-4395-bec6-1e9130f5d25e",
+      "bounds_cs_units": [
+        [
+          1848.0,
+          -4248.0,
+          -288.0
+        ],
+        [
+          2136.0,
+          -4024.0,
+          -216.0
+        ]
+      ]
+    },
+    {
+      "id": "b8bf3397-ec7a-408c-9e94-2baa7f87f642",
+      "bounds_cs_units": [
+        [
+          2104.0,
+          -1000.0,
+          -616.0
+        ],
+        [
+          2312.0,
+          -856.0,
+          -576.0
+        ]
+      ]
+    },
+    {
+      "id": "b46303b4-1133-4f50-a6f4-af5a9ce3093f",
+      "bounds_cs_units": [
+        [
+          2104.0,
+          -800.0,
+          -356.0
+        ],
+        [
+          2312.0,
+          -736.0,
+          -304.0
+        ]
+      ]
+    },
+    {
+      "id": "8c2b1b6f-0b26-422b-92d1-eed9b753bea5",
+      "bounds_cs_units": [
+        [
+          2104.0,
+          -1008.0,
+          -744.0
+        ],
+        [
+          2312.0,
+          -856.0,
+          -704.0
+        ]
+      ]
+    },
+    {
+      "id": "a057c38c-33dc-4163-b159-1edb61c159e4",
+      "bounds_cs_units": [
+        [
+          2104.0,
+          -1000.0,
+          -472.0
+        ],
+        [
+          2312.0,
+          -856.0,
+          -432.0
+        ]
+      ]
+    },
+    {
+      "id": "151627fd-4508-41dc-81fd-8ae8fd6f759d",
+      "bounds_cs_units": [
+        [
+          288.0000305175781,
+          -2392.0,
+          -328.0
+        ],
+        [
+          880.0,
+          -1864.0,
+          -259.35101318359375
+        ]
+      ]
+    }
+  ],
+  "legacy_teleport_entities": 230,
+  "teleport_destinations_resolved": [
+    "ACTUAL",
+    "begin",
+    "between",
+    "ch1",
+    "ch10",
+    "ch100",
+    "ch101",
+    "ch102",
+    "ch103",
+    "ch104",
+    "ch105",
+    "ch106",
+    "ch107",
+    "ch11",
+    "ch111",
+    "ch112",
+    "ch113",
+    "ch114",
+    "ch115",
+    "ch116",
+    "ch117",
+    "ch118",
+    "ch119",
+    "ch12",
+    "ch120",
+    "ch121",
+    "ch122",
+    "ch123",
+    "ch124",
+    "ch125",
+    "ch126",
+    "ch127",
+    "ch128",
+    "ch129",
+    "ch13",
+    "ch130",
+    "ch131",
+    "ch132",
+    "ch134",
+    "ch14",
+    "ch15",
+    "ch16",
+    "ch17",
+    "ch18",
+    "ch19",
+    "ch2",
+    "ch20",
+    "ch21",
+    "ch22",
+    "ch23",
+    "ch24",
+    "ch25",
+    "ch26",
+    "ch27",
+    "ch28",
+    "ch29",
+    "ch3",
+    "ch30",
+    "ch31",
+    "ch32",
+    "ch33",
+    "ch34",
+    "ch35",
+    "ch36",
+    "ch37",
+    "ch38",
+    "ch39",
+    "ch4",
+    "ch40",
+    "ch41",
+    "ch42",
+    "ch43",
+    "ch44",
+    "ch45",
+    "ch46",
+    "ch47",
+    "ch48",
+    "ch49",
+    "ch5",
+    "ch50",
+    "ch51",
+    "ch52",
+    "ch53",
+    "ch54",
+    "ch55",
+    "ch56",
+    "ch58",
+    "ch59",
+    "ch60",
+    "ch61",
+    "ch62",
+    "ch63",
+    "ch64",
+    "ch65",
+    "ch66",
+    "ch67",
+    "ch7",
+    "ch70",
+    "ch71",
+    "ch73",
+    "ch74",
+    "ch75",
+    "ch76",
+    "ch77",
+    "ch78",
+    "ch79",
+    "ch8",
+    "ch80",
+    "ch81",
+    "ch82",
+    "ch83",
+    "ch84",
+    "ch85",
+    "ch86",
+    "ch87",
+    "ch88",
+    "ch89",
+    "ch9",
+    "ch90",
+    "ch91",
+    "ch92",
+    "ch93",
+    "ch94",
+    "ch95",
+    "ch96",
+    "ch97",
+    "ch98",
+    "ch99",
+    "chbet",
+    "complete",
+    "danv",
+    "fih",
+    "highgr",
+    "ice",
+    "ice2",
+    "inter",
+    "ladder",
+    "lj",
+    "lowgr",
+    "reiboss1",
+    "reiboss2",
+    "tp_single1"
+  ],
+  "teleport_destinations_missing": []
 }

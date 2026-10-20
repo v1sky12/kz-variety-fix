@@ -148,12 +148,21 @@ function Data.waterBounds(map,water)
     local a,b=water.bounds[1],water.bounds[2]
     return {{a[1],a[2],a[3]},{b[1],b[2],math.max(a[3],level)}}
 end
+function Data.conveyorBounds(entity)
+    local a,b=entity.bounds[1],entity.bounds[2]
+    -- The imported solid face can extend above its source plane by up to
+    -- 2.816 units. A standing hull sits on the face, not inside the solid.
+    return {a,{b[1],b[2],b[3]+3.1}}
+end
 function Data.modifiers(map, feet, height, state)
     state=state or {}
     local m = {gravity = 1, jump = 1, slide = false, water = false,
-        disableCheckpoints = false, disableTeleports = false, disableJumpstats = false, antiBhop = 0, disableJump=false, waterLevel=0, forceDuck=false, forceUnduck=false}
+        disableCheckpoints = false, disableTeleports = false, disableJumpstats = false, antiBhop = 0, disableJump=false, waterLevel=0, forceDuck=false, forceUnduck=false,
+        conveyor=Vector3.zero}
     for _, e in ipairs(Data.zones) do
-        if Data.active(e,state) and Data.filterPass(e.properties.filtername,state) and Data.intersects(e.class=="func_water" and Data.waterBounds(map,e) or e.bounds, feet, height) then
+        local bounds=e.class=='func_water' and Data.waterBounds(map,e)
+            or e.class=='func_conveyor' and Data.conveyorBounds(e) or e.bounds
+        if Data.active(e,state) and Data.filterPass(e.properties.filtername,state) and Data.intersects(bounds, feet, height) then
             local p = e.properties
             if e.triggerType == 1 or e.triggerType == 14 then
                 local gravity=tonumber(p.timer_modifier_gravity)
@@ -169,6 +178,11 @@ function Data.modifiers(map, feet, height, state)
                 local delay,disabled=Blocks.jumpPolicy(e)
                 m.disableJump=m.disableJump or disabled
                 m.antiBhop = math.max(m.antiBhop,delay)
+            elseif e.class=='func_conveyor' and feet.Z>=e.bounds[1][3]-3.1 then
+                local _,yaw=(p.movedir or '0 0 0'):match('([^ ]+) +([^ ]+)')
+                yaw=math.rad(tonumber(yaw) or 0)
+                local speed=tonumber(p.speed) or 0
+                m.conveyor+=Data.worldVector(map,{math.cos(yaw)*speed,math.sin(yaw)*speed,0})
             elseif e.class == "func_water" then
                 local bounds=Data.waterBounds(map,e)
                 local level=0
@@ -250,12 +264,14 @@ function Data.findLadder(feet,height,previous)
     if best then return best,ladderNormal(best,feet) end
 end
 Data.blockMaps=setmetatable({}, {__mode='k'})
+Data.blockBindings=setmetatable({}, {__mode='k'})
 function Data.addBlockZones(map)
     if Data.blockMaps[map] then return end
     Data.blockMaps[map]=true
     local candidates,counts,known={},{},{}
-    for _,e in ipairs(Data.entities) do known[e.id]=true end
-    for _,e in ipairs(Data.zones) do known[e.id]=true end
+    Data.blockBindings[map]={}
+    for _,e in ipairs(Data.entities) do known[e.id]=e end
+    for _,e in ipairs(Data.zones) do known[e.id]=e end
     local function point(v)
         return typeof(v)=='Vector3' and v.X==v.X and v.Y==v.Y and v.Z==v.Z and v.Magnitude<1000000
     end
@@ -271,14 +287,41 @@ function Data.addBlockZones(map)
                     err='KZSourceBoundsMin/Max must be ordered finite Source-space Vector3 bounds'
                 else
                     e.bounds={{a.X,a.Y,a.Z},{b.X,b.Y,b.Z}}
-                    candidates[#candidates+1]=e;counts[e.id]=(counts[e.id] or 0)+1
+                    local sourceId=attributes.KZSourceEntityId
+                    local original=sourceId and known[sourceId]
+                    local key=sourceId and 'source:'..tostring(sourceId) or e.id
+                    if sourceId then
+                        local d=original and Blocks.describe(original)
+                        local declared=Blocks.describe(e)
+                        local same=d and original.bounds and d.kind==declared.kind
+                            and d.destination==declared.destination and math.abs(d.delay-declared.delay)<=1e-6
+                            and math.abs(d.antiBhop-declared.antiBhop)<=1e-6 and d.resetSpeed==declared.resetSpeed
+                            and d.toCheckpoint==declared.toCheckpoint
+                            and (original.properties.startdisabled=='1')==(e.properties.startdisabled=='1')
+                        if same then
+                            for side=1,2 do for axis=1,3 do
+                                if math.abs(original.bounds[side][axis]-e.bounds[side][axis])>.001 then same=false end
+                            end end
+                        end
+                        if not same then err='Source binding does not match its original trigger: '..tostring(sourceId) end
+                    end
+                    if not err then
+                        candidates[#candidates+1]={entity=e,key=key,original=original,part=part}
+                        counts[key]=(counts[key] or 0)+1
+                    end
                 end
             end
             if err then warn('[KZBlockController] '..part:GetFullName()..': '..err) end
         end
     end
-    for _,e in ipairs(candidates) do
-        if counts[e.id]~=1 or known[e.id] then warn('[KZBlockController] Duplicate block ID rejected: '..e.id)
+    for _,candidate in ipairs(candidates) do
+        local e,key=candidate.entity,candidate.key
+        if counts[key]~=1 or not candidate.original and known[e.id] then
+            warn('[KZBlockController] Duplicate block ID rejected: '..key)
+        elseif candidate.original then
+            -- The original entity retains its filters, Source I/O, offsets,
+            -- angles and per-player state. Its placed zone is not a second TP.
+            Data.blockBindings[map][candidate.original.id]=candidate.part
         else Data.zones[#Data.zones+1]=e end
     end
 end

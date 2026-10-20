@@ -34,8 +34,33 @@ def inventory():
             "jump_multiplier": float(properties.get("timer_modifier_jump_impulse", 1)),
             "slide": properties.get("timer_modifier_enable_slide") == "1",
         })
-    return {"entities": len(entities), "raw_ladder_faces": len(data["ladders"]), "counts": {name:counts[name] for name in sorted(NAMES.values())},
-            "studio_status": "Not run in Roblox Studio; per-block map playtest remains required.", "blocks": result}
+    legacy_pushes, conveyors, waters = [], [], []
+    by_name = {e["properties"]["targetname"]: e for e in entities if e["properties"].get("targetname")}
+    destinations = set()
+    for entity in entities:
+        p = entity["properties"]
+        name = p.get("classname")
+        kind = int(p.get("timer_trigger_type", 0))
+        if name == "trigger_push":
+            legacy_pushes.append({"id": entity["id"], "name": p.get("targetname"), "bounds_cs_units": entity["bounds"],
+                                  "direction_angles_source": p.get("pushdir", "0 0 0"), "speed": float(p.get("speed", 100)),
+                                  "start_touch_impulse": p.get("triggeronstarttouch") == "1", "filter": p.get("filtername")})
+        elif name == "func_conveyor":
+            conveyors.append({"id": entity["id"], "bounds_cs_units": entity["bounds"],
+                              "direction_angles_source": p.get("movedir", "0 0 0"), "speed": float(p.get("speed", 0))})
+        elif name == "func_water":
+            waters.append({"id": entity["id"], "bounds_cs_units": entity["bounds"]})
+        if name == "trigger_teleport" or kind in (10, 11, 12, 13):
+            target = p.get("timer_teleport_destination", p.get("target"))
+            if target:
+                destinations.add(target)
+    return {"schema_revision": 2, "entities": len(entities), "raw_ladder_faces": len(data["ladders"]),
+            "counts": {name:counts[name] for name in sorted(NAMES.values())},
+            "studio_status": "Not run in Roblox Studio; per-block map playtest remains required.", "blocks": result,
+            "legacy_pushes": legacy_pushes, "conveyors": conveyors, "water_volumes": waters,
+            "legacy_teleport_entities": sum(e["properties"].get("classname") == "trigger_teleport" for e in entities),
+            "teleport_destinations_resolved": sorted(destinations & by_name.keys()),
+            "teleport_destinations_missing": sorted(destinations - by_name.keys())}
 
 
 if __name__ == "__main__":

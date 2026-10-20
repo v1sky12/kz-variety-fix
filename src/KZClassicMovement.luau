@@ -26,7 +26,13 @@ local function restore()
     end
     for part,value in pairs(s.parts) do if part.Parent then part.CanCollide=value end end
     if s.partConnection then s.partConnection:Disconnect() end
-    if s.r.Parent then s.r:SetAttribute('KZMovementBackend',nil);s.r:SetAttribute('KZBrushCount',nil);s.r:SetAttribute('KZBrushMeshQueryCount',nil);s.r:SetAttribute('KZSurfing',nil);s.r:SetAttribute('KZSurfNormal',nil);s.r:SetAttribute('KZMapSlide',nil) end
+    if s.r.Parent then
+        for _,name in ipairs({'KZMovementBackend','KZMovementBuild','KZBrushCount','KZBrushMeshQueryCount',
+            'KZSurfing','KZSurfNormal','KZSurfPart','KZMapSlide','KZGroundCorrections','KZSeamRecoveries',
+            'KZConveyorSpeedUnits','KZVirtualHullHeightUnits','KZBoundSourceZoneCount','KZMovementProfile','KZLadderId'}) do
+            s.r:SetAttribute(name,nil)
+        end
+    end
 end
 local function fallback(reason)
     local previous=session
@@ -39,6 +45,8 @@ local function fallback(reason)
     restore()
     for _,c in ipairs(connections) do c:Disconnect() end
     warn('[KZ Brush] '..tostring(reason)..'; returning to saved KZClassic motor')
+    player:SetAttribute('KZBrushFallbackReason',tostring(reason))
+    if previous and previous.r.Parent then previous.r:SetAttribute('KZMovementBackend','KZClassicFallback') end
     local old=script.Parent:FindFirstChild('KZBrushFallback')
     if not old then
         local template=shared:FindFirstChild('KZBrushFallbackSource')
@@ -57,7 +65,10 @@ local function setup(character)
     local map=Data.findMap(workspace)
     if not map then fallback('Active calibrated map missing');return end
     local unit=Data.unitFor(map);local brushes,meshes={},{};local count=0
+    Data.addPracticeZones(map)
     Data.addBlockZones(map)
+    local boundZones=0
+    for _ in pairs(Data.blockBindings[map] or {}) do boundZones+=1 end
     -- Build before changing character physics. Visual mesh bounds are never used.
     local ok,err=pcall(function()
         for _,part in ipairs(map:GetDescendants()) do
@@ -101,6 +112,8 @@ local function setup(character)
     force.RelativeTo=Enum.ActuatorRelativeTo.World;force.ApplyAtCenterOfMass=true;force.Parent=r
     s.force=force;s.attachment=attachment
     r:SetAttribute('KZBrushCount',#brushes);r:SetAttribute('KZBrushMeshQueryCount',#meshes)
+    r:SetAttribute('KZBoundSourceZoneCount',boundZones);r:SetAttribute('KZMovementProfile','CKZAdapted')
+    player:SetAttribute('KZBrushFallbackReason',nil)
     r:SetAttribute('KZMovementBackend',#meshes>0 and 'BrushSweepMeshQueriesExperimental' or 'BrushSweepExperimental')
     print('[KZ Brush] compiled '..#brushes..' primitive brushes + '..#meshes..' MeshPart geometry queries; fixed 128 Hz; Studio playtest required')
 end
@@ -128,7 +141,7 @@ local function resetWarp(s,velocity,reason)
     local m=s.motor
     m.p=s.r.Position+Vector3.new(0,m.height/2*s.unit-s.standing,0)
     m.v=velocity or Vector3.zero;m.flight=nil;m.dropY=nil;m.weirdAt=nil;m.lastValid=false;m.lastKind=nil
-    m.waterJumpUntil=nil;m.pre=Core.newPre();m.lastLand=-math.huge;m.grounded=false;m.landingSpeed=nil;m.landingVelocity=nil;m.water=false
+    m.waterJumpUntil=nil;m.baseVelocity=Vector3.zero;m.pre=Core.newPre();m.lastLand=-math.huge;m.grounded=false;m.landingSpeed=nil;m.landingVelocity=nil;m.water=false
     m.surfNormal=nil;m.surfPart=nil;m.groundNormal=nil;m.contactPlanes=nil;m.groundAge=math.huge;s.pushes={}
     s.resetCount=(s.resetCount or 0)+1
     s.r:SetAttribute('KZBrushResetCount',s.resetCount)
@@ -136,7 +149,9 @@ local function resetWarp(s,velocity,reason)
     s.accumulator=0;s.ladder=nil;s.serial=player:GetAttribute('KZTeleportSerial');queued=-math.huge
 end
 local function ladderStep(s,input,dt,zone)
-    local m=s.motor;local feet=Data.sourcePoint(s.map,m:feet())
+    local m=s.motor
+    m:posture(not zone.forceUnduck and (zone.forceDuck or input.duck==true))
+    local feet=Data.sourcePoint(s.map,m:feet())
     m.water=zone.water==true
     local ladder,normal=Data.findLadder(feet,m.height,s.ladder)
     local previous=s.ladder
@@ -159,7 +174,8 @@ local function ladderStep(s,input,dt,zone)
         elseif attached or into>.15 then
             s.ladder=ladder;m:invalidate('Ladder');m.flight=nil;m.grounded=false;m.waterJumpUntil=nil;m.surfNormal=nil;m.surfPart=nil
             m.contactPlanes=nil;m.groundNormal=nil;m.landingVelocity=nil;m.landingSpeed=nil
-            m.time=m.time+dt;m.v=Core.ladderVelocity(motion*(input.duck and Core.Profile.LadderDuckSpeed or Core.Profile.LadderSpeed),normal)*s.unit
+            m.baseVelocity=Vector3.zero
+            m.time=m.time+dt;m.v=Core.ladderVelocity(motion*(m.duck and Core.Profile.LadderDuckSpeed or Core.Profile.LadderSpeed),normal)*s.unit
             local top=ladder.bounds[2][3]
             if m.v.Y>0 and feet.Z+m.v.Y/s.unit*dt>=top-.5 then
                 local rise=math.max(0,top+1-feet.Z)*s.unit
@@ -190,19 +206,24 @@ local function ladderStep(s,input,dt,zone)
 end
 local function telemetry(s)
     local m,r=s.motor,s.r
-    r:SetAttribute('KZMovementBuild','2026-10-19-r4')
+    r:SetAttribute('KZMovementBuild','2026-10-20-r1')
     r:SetAttribute('KZSeamRecoveries',m.recoveries or 0)
+    r:SetAttribute('KZGroundCorrections',m.groundCorrections or 0)
     r:SetAttribute('KZSurfing',s.ladder==nil and m.surfNormal~=nil)
     r:SetAttribute('KZSurfNormal',s.ladder==nil and m.surfNormal or nil)
+    r:SetAttribute('KZSurfPart',s.ladder==nil and m.surfPart and m.surfPart.Name or nil)
     r:SetAttribute('KZMapSlide',s.zoneSlide==true)
     r:SetAttribute('KZSpeedUnits',flat(m.v).Magnitude/s.unit)
     r:SetAttribute('KZInWater',m.water==true)
     r:SetAttribute('KZWaterVerticalUnits',m.water and m.v.Y/s.unit or 0)
+    r:SetAttribute('KZConveyorSpeedUnits',(m.baseVelocity or Vector3.zero).Magnitude/s.unit)
     r:SetAttribute('KZStudsPerCSUnit',s.unit);r:SetAttribute('KZMotorUnitsScale',s.unit)
     r:SetAttribute('KZHorizontalSpeedStuds',flat(m.v).Magnitude)
     if m.grounded then r:SetAttribute('KZPrestrafeUnits',flat(m.v).Magnitude/s.unit) end
     r:SetAttribute('KZPreGainUnits',Core.preGain(m.pre))
     r:SetAttribute('KZJumpCount',m.count);r:SetAttribute('KZOnLadder',s.ladder~=nil)
+    r:SetAttribute('KZLadderId',s.ladder and s.ladder.id or nil)
+    r:SetAttribute('KZVirtualHullHeightUnits',m.height)
     r:SetAttribute('KZSourcePosition',Data.sourcePoint(s.map,m:feet()))
     r:SetAttribute('KZGrounded',m.grounded);r:SetAttribute('KZOnGround',m.grounded);r:SetAttribute('KZLastTakeoffUnits',m.flight and m.flight.pre or r:GetAttribute('KZLastTakeoffUnits'))
     local f=m.result
@@ -237,6 +258,7 @@ connect(Net.OnClientEvent,function(kind,amount,set,serial,physicalVelocity,desti
     elseif kind=='ZoneState' and serial==s.serial then
         s.mapState=amount
     elseif kind=='Push' and serial==s.serial then
+        if destination=='LegacyConveyor' then return end -- Base velocity is simulated locally.
         s.pushes[#s.pushes+1]={amount=amount,flags=set,sourceFlags=physicalVelocity}
     end
 end)

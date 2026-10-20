@@ -1,46 +1,286 @@
 {
-  "sha256": "f80526b884b44d98d52461b2f08c48b7f21cfccac70d26cfe18d8182b9b2ce57",
-  "bytes": 2812522,
-  "chunks": 1872,
-  "classes": 93,
-  "instances": 135677,
-  "string_properties": 372,
+  "sha256": "d93078b778b811dcf594165d6a76febd466bc132c0ce8b8f9d28d36e2926144f",
+  "bytes": 2869842,
+  "chunks": 1900,
+  "classes": 97,
+  "instances": 135949,
+  "string_properties": 380,
   "scripts": 429,
   "compiled_scripts": 429,
+  "placed_original_zones": 267,
+  "practice_reset_zones": 2,
+  "verified_bhop_supports": 17,
+  "water_openings": 1,
+  "runtime_script_count": 6,
+  "runtime_scripts": [
+    "ServerScriptService/KZClassicGameplay",
+    "StarterPlayer/StarterPlayerScripts/KZClassicChat",
+    "StarterPlayer/StarterPlayerScripts/KZClassicControls",
+    "StarterPlayer/StarterPlayerScripts/KZClassicCrouchPose",
+    "StarterPlayer/StarterPlayerScripts/KZClassicHUD",
+    "StarterPlayer/StarterPlayerScripts/KZClassicMovement"
+  ],
   "rojo_validated": true,
   "rojo_version": "Rojo 7.7.1",
-  "build": "2026-10-19-r4",
-  "release": "V7.19",
-  "previous_commit": "ea8fe9a04b83a997b035bc70a4bafe46ab11261f",
-  "baseline_sha256": "70794a4ffac2a7e00f29642193dda743cdf25bc59cd655f974ae3d706f6bc674",
-  "zip_sha256": "f243c5ff05c1b3e2c078ed741d2257be271573938141a6b5c213e541cc8983b9",
+  "release": "V7.20",
+  "build": "2026-10-20-r1",
+  "previous_commit": "5b3d82187465f141f4079e4b25064090cc5c151a",
+  "baseline_sha256": "f80526b884b44d98d52461b2f08c48b7f21cfccac70d26cfe18d8182b9b2ce57",
+  "zip_sha256": "a34f9dfb632e17646040953d2fc8595f2e91153ff27a79de6a5916c3e0c65311",
   "luau_commit": "9d7748a4f324213a18cb8283fa2a77c330225fa0",
-  "test_results": {
-    "physics_scenarios": 59,
-    "block_scenarios": 22,
-    "client_scenarios": 13,
-    "server_scenarios": 30,
-    "container_and_installer": 15,
-    "failed": 0
-  },
-  "changed_sources": [
-    "StarterPlayer/StarterPlayerScripts/KZClassicMovement",
-    "ReplicatedStorage/KZClassic/KZClassicCore",
-    "ReplicatedStorage/KZClassic/KZBrushMotor"
-  ],
-  "added_sources": [],
+  "lune_version": "0.11.0",
+  "lune_archive_sha256": "5a0ea32c3e13e5e3b1dc415c2056bcfe44258b3a811dcd473c50e3b437d10f72",
   "studio_run": false,
   "real_two_client_test": false,
-  "geometry_and_backup_sources_preserved": true,
-  "physics_updated": true,
-  "protected_script_sources": 426,
-  "rojo_rejects_damaged_source_length": true,
+  "native_mesh_collisions_tested": false,
+  "native_mesh_query_count": 20,
+  "primitive_brush_count": 16064,
+  "physics_ticks_per_second": 128,
   "build_is_reproducible_and_idempotent": true,
-  "constant_input_frame_rates_tested": [
-    30,
-    60,
-    144,
-    240
+  "added_instances": 272,
+  "physics_updated": true,
+  "test_results": {
+    "physics_scenarios": 68,
+    "block_scenarios": 24,
+    "client_scenarios": 15,
+    "server_scenarios": 35,
+    "container_and_installer": 22,
+    "failed": 0
+  },
+  "float32_regressions": {
+    "plane_projections": 11160,
+    "unwanted_stops": 0,
+    "downhill_wall_tangents": 360,
+    "rotated_thin_primitive_traces": 540
+  },
+  "offline_map_checks": {
+    "water_trajectories": 360,
+    "water_volumes": 11,
+    "water_stuck_cases": 0,
+    "conveyors_with_accessible_support": 4,
+    "conveyor_paths": 36,
+    "unconfirmed_conveyors": 1,
+    "surf_trajectories": 258,
+    "surf_start_solid_cases": 0,
+    "surf_abrupt_stops_at_actual_walls": 2,
+    "teleport_poses": 284,
+    "teleport_blocked_poses": 0,
+    "teleport_missing_destinations": 0
+  },
+  "offline_motor_stress": [
+    {
+      "completed": 6000,
+      "energyCases": 0,
+      "failures": {},
+      "groundCorrections": 0,
+      "jumping": true,
+      "limit": 6000,
+      "recoveries": 0,
+      "seconds": 473.1239359530009,
+      "seed": 20261023,
+      "starts": 160,
+      "ticks": 384000
+    },
+    {
+      "completed": 6000,
+      "energyCases": 1,
+      "failures": {},
+      "groundCorrections": 0,
+      "jumping": false,
+      "limit": 6000,
+      "recoveries": 0,
+      "seconds": 551.225946012004,
+      "seed": 20261024,
+      "starts": 160,
+      "ticks": 384000
+    }
   ],
-  "physics_ticks_per_second": 128
+  "validation_steps": {
+    "build": {
+      "exit_code": 0,
+      "seconds": 39.573
+    },
+    "luau": {
+      "exit_code": 0,
+      "seconds": 0.788
+    },
+    "python": {
+      "exit_code": 0,
+      "seconds": 38.817
+    },
+    "float32": {
+      "exit_code": 0,
+      "seconds": 0.79
+    },
+    "scene": {
+      "exit_code": 0,
+      "seconds": 13.672
+    },
+    "water": {
+      "exit_code": 0,
+      "seconds": 37.1
+    },
+    "conveyor": {
+      "exit_code": 0,
+      "seconds": 16.752
+    },
+    "surf": {
+      "exit_code": 0,
+      "seconds": 26.525
+    },
+    "teleports": {
+      "exit_code": 0,
+      "seconds": 12.897
+    },
+    "package_check": {
+      "exit_code": 0,
+      "seconds": 10.567
+    }
+  },
+  "limitations": [
+    "Roblox Studio and native multiplayer were not available.",
+    "20 native MeshPart collisions and visual water seams require Studio playtesting.",
+    "One conveyor has no accessible support in the offline sample and remains unconfirmed.",
+    "CYBERSHOKE settings and closed CS2 internals are not reproduced exactly."
+  ],
+  "changed_sources": [
+    "StarterPlayer/StarterPlayerScripts/KZClassicHUD",
+    "StarterPlayer/StarterPlayerScripts/KZClassicMovement",
+    "ReplicatedStorage/KZClassic/KZClassicCore",
+    "ReplicatedStorage/KZClassic/KZMapData",
+    "ReplicatedStorage/KZClassic/KZEnvironmentMap",
+    "ReplicatedStorage/KZClassic/KZVerify",
+    "ReplicatedStorage/KZClassic/KZBrushCollision",
+    "ReplicatedStorage/KZClassic/KZBrushMotor",
+    "ServerScriptService/KZClassicGameplay"
+  ],
+  "changed_scene_properties": [
+    {
+      "id": 7,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 120,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04145",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 895,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_03193",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 1208,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04141",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 1259,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04987",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 1904,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00781",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 2323,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04985",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 3328,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04983",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 4001,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04984",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 6470,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_05002",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 9321,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04146",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 9418,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00975",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 10802,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_02746",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 13065,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04894",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 15076,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04988",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 15558,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04147",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 15578,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_01003",
+      "property": "AttributesSerialize"
+    },
+    {
+      "id": 16075,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/__KZ_WaterSurfaces/WaterSurface_07",
+      "property": "CFrame"
+    },
+    {
+      "id": 3795,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00964",
+      "property": "CanCollide"
+    },
+    {
+      "id": 15925,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00956",
+      "property": "CanCollide"
+    },
+    {
+      "id": 16199,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/__KZ_WaterCorrections/WaterOpeningDryFloor",
+      "property": "CanCollide"
+    },
+    {
+      "id": 3795,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00964",
+      "property": "CanQuery"
+    },
+    {
+      "id": 15925,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00956",
+      "property": "CanQuery"
+    },
+    {
+      "id": 16199,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/__KZ_WaterCorrections/WaterOpeningDryFloor",
+      "property": "CanQuery"
+    },
+    {
+      "id": 15925,
+      "path": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00956",
+      "property": "CanTouch"
+    }
+  ],
+  "protected_script_sources": 420,
+  "all_original_instance_ids_and_parents_preserved": true
 }

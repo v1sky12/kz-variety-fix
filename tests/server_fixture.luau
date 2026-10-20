@@ -19,7 +19,14 @@ local function typeof(value)
 end
 local sent={}
 local Net={OnServerEvent=signal()}
-function Net:FireClient(player,kind,...) sent[#sent+1]={player=player,kind=kind,args={...}} end
+function Net:FireClient(player,kind,...)
+    local args={...}
+    if kind=='ZoneState' then
+        local state=args[1]
+        args[1]={disabled=table.clone(state.disabled),attributes=table.clone(state.attributes),activatorName=state.activatorName}
+    end
+    sent[#sent+1]={player=player,kind=kind,args=args}
+end
 local Players={PlayerAdded=signal(),PlayerRemoving=signal()}
 function Players:GetPlayers() return {} end
 function Players:GetPlayerByUserId() return nil end
@@ -38,11 +45,18 @@ function workspace:Raycast(position,direction,params)
     assert(params.FilterDescendantsInstances[1]==serverMap,'ground queries must exclude other players')
     if position.Y+direction.Y<=0 and position.Y>=0 then return {Normal=Vector3.new(0,1,0)} end
 end
+local groundWorld
 function workspace:Blockcast(frame,size,direction,params)
     assert(params.FilterDescendantsInstances[1]==serverMap,'ground queries must exclude other players')
+    if groundWorld then
+        local hit=groundWorld:trace(frame.Position,direction,size/2)
+        return not hit.startSolid and hit.fraction<1 and {Normal=hit.normal,Distance=direction.Magnitude*hit.fraction} or nil
+    end
     local bottom=frame.Position.Y-size.Y/2
     local overlaps=not groundBounds or (frame.Position.X+size.X/2>=groundBounds[1] and frame.Position.X-size.X/2<=groundBounds[2])
-    if overlaps and bottom>=0 and bottom+direction.Y<=0 then return {Normal=Vector3.new(0,1,0)} end
+    if direction.Y<0 and overlaps and bottom>=0 and bottom+direction.Y<=0 then
+        return {Normal=Vector3.new(0,1,0),Distance=direction.Magnitude*(-bottom/direction.Y)}
+    end
 end
 local RunService={Heartbeat=signal()}
 local TextChatService={}
@@ -53,7 +67,7 @@ local ReplicatedStorage={WaitForChild=function() return shared end}
 local PhysicsService={RegisterCollisionGroup=function() end,CollisionGroupSetCollidable=function() end}
 local services={Players=Players,RunService=RunService,ReplicatedStorage=ReplicatedStorage,TextChatService=TextChatService,PhysicsService=PhysicsService}
 local game={GetService=function(_,name) return assert(services[name],name) end}
-local require=function(name) return name=='KZMapData' and Data or name=='KZBlockController' and Blocks or name=='KZBhop' and Bhop or error(name) end
+local require=function(name) return name=='KZMapData' and Data or name=='KZClassicCore' and Core or name=='KZBlockController' and Blocks or name=='KZBhop' and Bhop or error(name) end
 local RaycastParams={new=function() return {} end}
 local Enum={RaycastFilterType={Include='Include',Exclude='Exclude'}}
 local Instance={new=function() return {Triggered=signal()} end}

@@ -1,4 +1,5 @@
 import struct
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,7 +9,11 @@ import zipfile
 import zstandard
 
 from install_kz_variety_fix import install, replace_place, rollback
-from rbxl_container import ContainerError, add_module_script, chunks, decode_references, encode_references, property_header, replace_source_arrays, validate
+from build_place import verify_preservation
+from rbxl_container import (ContainerError, add_module_script, append_block_model, chunks, decode_references,
+                            audit_kz_runtime, encode_chunk, encode_property_values, encode_references, property_header, property_values,
+                            read_string,
+                            replace_scene_properties, replace_source_arrays, validate, write_string)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -52,8 +57,8 @@ class ContainerAndInstallerTests(unittest.TestCase):
 
     def test_actual_place_structure_is_complete(self):
         self.assertEqual(self.report["scripts"], 429)
-        self.assertEqual(self.report["instances"], 135677)
-        self.assertEqual(self.report["classes"], 93)
+        self.assertEqual(self.report["instances"], 135949)
+        self.assertEqual(self.report["classes"], 97)
         self.assertEqual(self.report["paths"][135676], "ReplicatedStorage/KZClassic/KZBlockController")
 
     def test_new_module_preserves_all_existing_property_chunks_and_paths(self):
@@ -82,6 +87,90 @@ class ContainerAndInstallerTests(unittest.TestCase):
         self.assertEqual(decode_references(encode_references(values), len(values)), values)
         with self.assertRaises(ContainerError):
             encode_references([1 << 32])
+
+    def test_lz4_block_model_is_read_with_every_placed_zone(self):
+        model = validate((ROOT / "scene/block_zones.rbxm").read_bytes())
+        self.assertEqual(model["instances"], 270)
+        self.assertEqual(model["scripts"], 0)
+        self.assertEqual(len(set(model["paths"].values())), 270)
+
+    def test_installer_rejects_an_extra_active_starter_controller_before_replacement(self):
+        parent = next(ref for ref, path in self.report["paths"].items() if path == "StarterPlayer/StarterPlayerScripts")
+        reference = max(self.report["paths"]) + 1
+        added = add_module_script(self.place, reference, parent, "ConflictingMotor", b"return {}")
+        output = [added[:32]]
+        for chunk in chunks(added):
+            if chunk.tag == b"INST":
+                name, offset = read_string(chunk.payload, 4)
+                if name == b"ModuleScript" and struct.unpack_from("<I", chunk.payload, offset + 1)[0] == 1:
+                    ids = decode_references(chunk.payload[offset + 5:offset + 9], 1)
+                    if ids == [reference]:
+                        output.append(encode_chunk(b"INST", chunk.payload[:4] + write_string(b"LocalScript") + chunk.payload[offset:]))
+                        continue
+            output.append(chunk.encoded)
+        conflicting = b"".join(output)
+        validate(conflicting)
+        self.assertEqual(audit_kz_runtime(self.place)["runtime_script_count"], 6)
+        destination = self.root / "map.rbxl"
+        destination.write_bytes(self.place)
+        with self.assertRaisesRegex(ContainerError, "controller conflict"):
+            install(self.package(conflicting), destination)
+        self.assertEqual(destination.read_bytes(), self.place)
+        self.assertEqual(list(self.root.glob("*.backup-*")), [])
+
+    def test_numeric_and_cframe_property_arrays_round_trip_exact_bytes(self):
+        for kind, values in [
+            (1, [b"", "русский".encode(), b"\0\xff"]),
+            (2, [b"\0", b"\1", b"\0"]),
+            (4, [bytes(range(i, i + 4)) for i in (0, 10, 20)]),
+            (14, [bytes(range(i, i + 12)) for i in (0, 10, 20)]),
+            (16, [b"\x02" + bytes(range(12)), b"\0" + bytes(range(36)) + bytes(range(12, 24)), b"\x03" + bytes(range(24, 36))]),
+        ]:
+            with self.subTest(kind=kind):
+                payload = struct.pack("<I", 3) + write_string(b"Test") + bytes([kind]) + encode_property_values(kind, values)
+                self.assertEqual(property_values(payload, 3), values)
+        with self.assertRaises(ContainerError):
+            encode_property_values(14, [b"short"])
+
+    def test_declared_scene_patch_is_idempotent_and_preserves_scripts(self):
+        manifest = json.loads((ROOT / "scene/manifest.json").read_text())
+        edits = {int(ref): edit for ref, edit in manifest["edits"].items()}
+        result = replace_scene_properties(self.place, (ROOT / "scene/property_edits.rbxm").read_bytes(), edits)
+        self.assertEqual(result, self.place)
+        self.assertEqual(validate(result)["sources"], self.report["sources"])
+
+    def test_scene_patch_rejects_moved_targets_and_script_edits(self):
+        model = (ROOT / "scene/property_edits.rbxm").read_bytes()
+        for edits in [{7: {"path": "wrong", "properties": ["AttributesSerialize"]}},
+                      {7: {"path": self.report["paths"][7], "properties": ["Source"]}}]:
+            with self.subTest(edits=edits), self.assertRaises(ContainerError):
+                replace_scene_properties(self.place, model, edits)
+
+    def test_full_preservation_audit_rejects_a_changed_backup_source(self):
+        report = verify_preservation(self.place, self.place)
+        self.assertEqual(report["protected_script_sources"], 429)
+        modified = replace_source_arrays(self.place, {16976: b"-- unintended backup edit\n"})
+        with self.assertRaisesRegex(ValueError, "undeclared change"):
+            verify_preservation(self.place, modified)
+
+    def test_appending_zone_model_preserves_existing_property_chunks(self):
+        # A separate, uniquely named subtree exercises reference remapping.
+        model = (ROOT / "scene/block_zones.rbxm").read_bytes()
+        parent = 17018
+        result = append_block_model(self.place, model, parent, "__KZ_BlockZones")
+        after = validate(result)
+        self.assertEqual(after["instances"], self.report["instances"] + 270)
+        self.assertEqual(after["sources"], self.report["sources"])
+        before_chunks = [c.encoded for c in chunks(self.place) if c.tag != b"PRNT"]
+        position = 0
+        for chunk in chunks(result):
+            if position < len(before_chunks) and chunk.encoded == before_chunks[position]:
+                position += 1
+        self.assertEqual(position, len(before_chunks))
+        for ref, path in self.report["paths"].items():
+            self.assertEqual(after["paths"][ref], path)
+        with self.assertRaises(ContainerError):
+            append_block_model(result, model, parent, "__KZ_BlockZones")
 
     def test_stale_source_length_is_detected(self):
         with self.assertRaises(ContainerError):

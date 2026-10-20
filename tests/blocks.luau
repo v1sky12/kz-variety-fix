@@ -146,5 +146,42 @@ test('invalid bounds do not infer a zone from platform dimensions',function()
     local saved=Data.zones;Data.zones={};local a=attrs('bad');a.KZSourceBoundsMin=Vector3.new(100,0,0)
     Data.addBlockZones(customMap({part(a)}));assert(#Data.zones==0);Data.zones=saved
 end)
+test('placed original zone binds without duplicating its Source trigger',function()
+    local original
+    for _,e in ipairs(Data.zones) do if e.triggerType==12 then original=e;break end end
+    assert(original)
+    local description=Blocks.describe(original)
+    local a=attrs('original');a.KZSourceEntityId=original.id
+    a.KZDestination=description.destination;a.KZReturnToCheckpoint=false
+    a.KZBlockDelay=description.delay;a.KZAntiBhopTime=description.antiBhop
+    a.KZResetSpeed=description.resetSpeed
+    a.KZSourceBoundsMin=Vector3.new(unpack(original.bounds[1]))
+    a.KZSourceBoundsMax=Vector3.new(unpack(original.bounds[2]))
+    local map=customMap({part(a)});local count=#Data.zones
+    Data.addBlockZones(map)
+    assert(#Data.zones==count and Data.blockBindings[map][original.id])
+    assert(Data.zones[table.find(Data.zones,original)]==original)
+    local rounded=table.clone(a)
+    rounded.KZBlockDelay=math.floor(description.delay*1000000+.5)/1000000
+    rounded.KZAntiBhopTime=math.floor(description.antiBhop*1000000+.5)/1000000
+    local roundedMap=customMap({part(rounded)});Data.addBlockZones(roundedMap)
+    assert(Data.blockBindings[roundedMap][original.id],'Studio decimal entry rejected due to a float32 Source duration')
+    local broken=table.clone(a);broken.KZBlockType='MultiBhop'
+    local badMap=customMap({part(broken)});Data.addBlockZones(badMap)
+    assert(#Data.zones==count and not Data.blockBindings[badMap][original.id])
+    broken=table.clone(a);broken.KZReturnToCheckpoint=true
+    local cpMap=customMap({part(broken)});Data.addBlockZones(cpMap)
+    assert(not Data.blockBindings[cpMap][original.id],'binding silently changed the destination policy')
+end)
+test('duplicate original bindings cannot create a second trigger',function()
+    local original
+    for _,e in ipairs(Data.zones) do if e.triggerType==11 then original=e;break end end
+    local d=Blocks.describe(original);local a=attrs('duplicate','MultiBhop')
+    a.KZSourceEntityId=original.id;a.KZDestination=d.destination;a.KZReturnToCheckpoint=false
+    a.KZBlockDelay=d.delay;a.KZAntiBhopTime=d.antiBhop;a.KZResetSpeed=d.resetSpeed
+    a.KZSourceBoundsMin=Vector3.new(unpack(original.bounds[1]));a.KZSourceBoundsMax=Vector3.new(unpack(original.bounds[2]))
+    local map=customMap({part(a),part(table.clone(a))});local count=#Data.zones
+    Data.addBlockZones(map);assert(#Data.zones==count and not Data.blockBindings[map][original.id])
+end)
 print(string.format('BLOCK RESULT %d passed, %d failed',passed,failed))
 assert(failed==0,'block controller regressions failed')

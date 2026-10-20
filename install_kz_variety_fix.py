@@ -9,7 +9,7 @@ import shutil
 import sys
 import tempfile
 import zipfile
-from rbxl_container import validate
+from rbxl_container import audit_kz_runtime, validate
 MAX_PLACE_SIZE = 256 * 1024 * 1024
 
 def check_place(path: Path) -> None:
@@ -49,6 +49,7 @@ def install(package: Path, destination: Path) -> Path | None:
         if bad_member is not None:
             raise ValueError(f'ZIP checksum failed: {bad_member}')
         data = archive.read(names[0])
+    audit_kz_runtime(data)
     return replace_place(data, destination)
 
 def rollback(backup: Path, destination: Path) -> Path | None:
