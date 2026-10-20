@@ -133,7 +133,8 @@ function M:tick(input,dt,zone)
     local groundBefore=self.grounded
     local groundFeetY=self:feet().Y
     local waterJump=self.waterJumpUntil and self.time<self.waterJumpUntil
-    if self.grounded then self.waterJumpUntil=nil;waterJump=false end
+    if self.grounded or zone.waterLevel==0 or (zone.water and self.v.Y<0) then waterJump=false end
+    if not waterJump then self.waterJumpUntil=nil;self.waterJumpVelocity=nil end
     local gravity=profile.Gravity*self.unit*(zone.gravity or 1)
     if zone.water and not waterJump then gravity=0 end
     self.v=self.v-Vector3.new(0,gravity*.5*dt,0)
@@ -168,6 +169,7 @@ function M:tick(input,dt,zone)
     else
         xz=self.core.step(flat(self.v)/self.unit,input.wish,self.grounded and not zone.slide,dt,self.pre,self.groundAge,speedFactor)*self.unit
     end
+    if waterJump and self.waterJumpVelocity then xz=self.waterJumpVelocity end
     self.v=Vector3.new(xz.X,self.v.Y,xz.Z)
     self.airGain=flat(self.v).Magnitude/self.unit-beforeAir
     self.water=zone.water==true
@@ -178,18 +180,32 @@ function M:tick(input,dt,zone)
         if input.jump then self.v=Vector3.new(self.v.X,profile.WaterRise*self.unit,self.v.Z) end
         -- WaterMove has its own acceleration: never add AirAccelerate first.
         self.v=self.core.waterMove(self.v/self.unit,input.swim or input.wish,input.jump,dt)*self.unit
-        -- Probe a low ledge and clearance above it at waist water level.
-        -- Full hull movement still resolves the exit against real geometry.
+        -- Source uses a 256-unit exit impulse and keeps pushing toward the
+        -- bank after the first wall collision. A 225-unit impulse cannot lift
+        -- standing feet from waist depth to a bank at the water surface.
+        -- Check the entire exit hull and a standable landing before launching.
         if zone.waterLevel==2 and input.wish.Magnitude>.1 and self.v.Y>-180*self.unit then
             local probe=self:feet()+Vector3.new(0,18*self.unit,0)
             local half=Vector3.new(16,1,16)*self.unit
             local wall=self.world:trace(probe,input.wish*24*self.unit,half)
-            local clear=self.world:trace(probe+Vector3.new(0,30*self.unit,0),input.wish*24*self.unit,half)
             if wall.fraction<1 and not wall.startSolid and wall.normal and wall.normal.Y<.1
-                and not clear.startSolid and clear.fraction==1 then
-                self.waterJumpUntil=self.time+.25;waterJump=true
-                gravity=profile.Gravity*self.unit*(zone.gravity or 1)
-                self.v=input.wish*50*self.unit+Vector3.new(0,225*self.unit-gravity*.5*dt,0)
+                and wall.fraction*24<=4 then
+                local rise=48*self.unit
+                local up=self.world:trace(self.p,Vector3.new(0,rise,0),self:half())
+                local clear=not up.startSolid and up.fraction==1
+                    and self.world:trace(up.position,input.wish*24*self.unit,self:half())
+                if clear and not clear.startSolid and clear.fraction==1 then
+                    local landing=self.world:trace(clear.position,Vector3.new(0,-rise,0),self:half())
+                    local climb=landing.position.Y-self.p.Y
+                    gravity=profile.Gravity*self.unit*(zone.gravity or 1)
+                    local maximum=profile.WaterJumpImpulse^2/(2*gravity)*self.unit^2
+                    if not landing.startSolid and landing.fraction<1 and landing.normal
+                        and landing.normal.Y>=profile.WalkableNormal and climb>0 and climb<maximum-.5*self.unit then
+                        self.waterJumpUntil=self.time+profile.WaterJumpDuration;waterJump=true
+                        self.waterJumpVelocity=-flat(wall.normal).Unit*profile.WaterJumpForward*self.unit
+                        self.v=self.waterJumpVelocity+Vector3.new(0,profile.WaterJumpImpulse*self.unit-gravity*.5*dt,0)
+                    end
+                end
             end
         end
     end

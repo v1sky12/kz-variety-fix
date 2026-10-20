@@ -13,8 +13,9 @@ from rbxl_container import (add_module_script, append_block_model, audit_kz_runt
                             decode_references, uint)
 
 ROOT = Path(__file__).resolve().parent
+VERSIONED_ZIP = "kz_variety_fix_V7_21.zip"
 PACKAGE_FILES = ("INSTALL_KZ_VARIETY_FIX.md", "PLAYTEST_RU.md", "BLOCKS_RU.md", "PHYSICS_RU.md", "SCENE_CHANGES_RU.md",
-                 "scene/placements.json", "scene/manifest.json", "special_blocks_audit.json",
+                 "scene/placements.json", "scene/route_blocks.json", "scene/manifest.json", "special_blocks_audit.json",
                  "install_kz_variety_fix.py", "rbxl_container.py", "requirements.txt")
 
 
@@ -30,7 +31,8 @@ def verify_scene(data: bytes) -> dict:
     for addition in manifest["additions"]:
         verify_scene_subtree(data, manifest, addition)
     return {"placed_original_zones": manifest["originalZones"], "practice_reset_zones": 2,
-            "verified_bhop_supports": manifest["verifiedBhopSupports"], "water_openings": 1}
+            "verified_bhop_supports": manifest["verifiedBhopSupports"], "water_openings": 1,
+            "visible_route_blocks": manifest["visibleRouteBlocks"]}
 
 
 def verify_scene_subtree(data: bytes, manifest: dict, addition: dict) -> None:
@@ -250,7 +252,10 @@ def main() -> None:
     if not args.check:
         (ROOT / "kz_variety_fix.rbxl").write_bytes(data)
         make_zip(data, ROOT / "kz_variety_fix_updated.zip")
+        (ROOT / VERSIONED_ZIP).write_bytes((ROOT / "kz_variety_fix_updated.zip").read_bytes())
     else:
+        if (ROOT / VERSIONED_ZIP).read_bytes() != (ROOT / "kz_variety_fix_updated.zip").read_bytes():
+            raise ValueError("stale versioned ZIP")
         with zipfile.ZipFile(ROOT / "kz_variety_fix_updated.zip") as archive:
             if archive.testzip() is not None or archive.read("kz_variety_fix.rbxl") != data:
                 raise ValueError("stale or corrupt ZIP")

@@ -101,12 +101,64 @@ for _,e in Data.zones do
   placements[#placements+1]=record
  end
 end
+-- Visible, physical route blocks. Original mechanics still bind to exactly
+-- one source zone; these surfaces must not register duplicate trigger IDs.
+local route=R.Instance.new('Folder');route.Name='__KZ_RouteBlocks'
+route:SetAttribute('KZRouteBlockRevision',1)
+local colors={SingleBhop=R.Color3.fromRGB(215,137,48),MultiBhop=R.Color3.fromRGB(57,164,105),
+ SequentialBhop=R.Color3.fromRGB(146,107,215),Reset=R.Color3.fromRGB(55,133,172)}
+local routeRecords={}
+local lift=.035
+for _,record in placements do
+ if record.support then
+  local support=assert(c.map:FindFirstChild(record.support:match('([^/]+)$'),true))
+  local block=support:Clone();block:ClearAllChildren();block.Name=record.type..'_'..record.id:sub(1,8)
+  block.CFrame=support.CFrame+V(0,lift,0)
+  block.Anchored=true;block.Transparency=0;block.Color=colors[record.type]
+  block.Material=R.Enum.Material.Concrete;block.CastShadow=true
+  block.CanCollide=true;block.CanQuery=true;block.CanTouch=false
+  block:SetAttribute('KZSurfaceMechanic',record.type)
+  block:SetAttribute('KZSurfaceTriggerIds',record.id)
+  block:SetAttribute('KZReplacesCollision',record.support)
+  block.Parent=route
+  local old=patch(support,{'CanCollide','CanQuery','CanTouch'})
+  old.CanCollide=false;old.CanQuery=false;old.CanTouch=false
+  record.originalSupportFeet=record.supportFeet
+  record.supportFeet={record.supportFeet[1],record.supportFeet[2],record.supportFeet[3]+lift/c.unit}
+  if record.id=='ee208aed-14c0-4cba-aaad-d248774814b5' then record.supportFeet[2]=-1180 end
+  record.visibleBlock=block.Name
+  routeRecords[#routeRecords+1]={part=block.Name,type=record.type,sourceId=record.id,
+   supportFeet=record.supportFeet,replaces=record.support}
+ end
+end
+-- A raised Sequential line inside the original large Multi section, not in
+-- the detached practice area. Missing a pad lands on the existing timed Multi.
+local function routePad(name,x,kind)
+ local a,b={x-32,-1096,-304},{x+32,-1032,-272}
+ local p=R.Instance.new('Part');p.Name=name;p.Anchored=true
+ p.Size=V(b[2]-a[2],b[3]-a[3],b[1]-a[1])*c.unit
+ p.CFrame=R.CFrame.new(Data.worldPoint(c.map,{x,-1064,-288}))*c.map:GetPivot().Rotation
+ p.Color=colors[kind];p.Material=R.Enum.Material.Concrete
+ p.CanCollide=true;p.CanQuery=true;p.CanTouch=false
+ p:SetAttribute('KZBlockType',kind);p:SetAttribute('KZBlockId','route_'..name)
+ p:SetAttribute('KZSourceBoundsMin',V(a[1],a[2],b[3]))
+ p:SetAttribute('KZSourceBoundsMax',V(b[1],b[2],b[3]+2))
+ if kind=='SequentialBhop' then p:SetAttribute('KZDestination','chbet');p:SetAttribute('KZBlockDelay',.1) end
+ p.Parent=route
+ routeRecords[#routeRecords+1]={part=name,type=kind,bounds={a,b},supportFeet={x,-1064,-272+.001/c.unit}}
+end
+routePad('SequentialEntryReset',360,'Reset')
+for i,x in {472,632,792} do routePad('Sequential_'..i,x,'SequentialBhop') end
+routePad('SequentialExitReset',904,'Reset')
 -- Original water depth is defined by the VMAP volume, never by a floor's top.
 local waterId='b8bf3397-ec7a-408c-9e94-2baa7f87f642'
 local m=patch(c.map,{'AttributesSerialize'})
 m:SetAttribute(Data.waterLevelAttribute(waterId),nil)
 m:SetAttribute('KZBlockPlacementRevision',1)
 m:SetAttribute('KZWaterDepthRevision',1)
+m:SetAttribute('KZVisibleRouteBlocks',#routeRecords)
+m:SetAttribute('KZVisibleRouteBlockRevision',1)
+m:SetAttribute('KZRouteBlocksOrigin',V(360,-1064,-270))
 local floor=assert(c.map:FindFirstChild('V16_Collision_00964',true))
 local floorPatch=patch(floor,{'CanCollide','CanQuery','CanTouch'})
 floorPatch.CanCollide=true;floorPatch.CanQuery=true;floorPatch.CanTouch=false
@@ -152,10 +204,13 @@ local counts={};local supported=0
 for _,p in placements do counts[p.type]=(counts[p.type] or 0)+1;if p.support then supported+=1 end end
 local manifest={revision=1,mapPath=fullPath(c.map),mapId=ids[fullPath(c.map)],rootName=root.Name,
  originalZones=original,counts=counts,verifiedBhopSupports=supported,edits=edits,
- additions={{file='block_zones.rbxm',rootName=root.Name},{file='water_opening.rbxm',rootName=opening.Name}},
+ additions={{file='block_zones.rbxm',rootName=root.Name},{file='water_opening.rbxm',rootName=opening.Name},
+  {file='route_blocks.rbxm',rootName=route.Name}},visibleRouteBlocks=#routeRecords,
  waterOpening={id=openingId,originalPlate=fullPath(lid),dryBounds=dryBounds}}
 c.fs.writeFile('scene/block_zones.rbxm',R.serializeModel({root}))
 c.fs.writeFile('scene/water_opening.rbxm',R.serializeModel({opening}))
+c.fs.writeFile('scene/route_blocks.rbxm',R.serializeModel({route}))
+c.fs.writeFile('scene/route_blocks.json',c.serde.encode('json',routeRecords,true)..'\n')
 c.fs.writeFile('scene/property_edits.rbxm',R.serializeModel(patchArray))
 c.fs.writeFile('scene/manifest.json',c.serde.encode('json',manifest,true)..'\n')
 c.fs.writeFile('scene/placements.json',c.serde.encode('json',placements,true)..'\n')

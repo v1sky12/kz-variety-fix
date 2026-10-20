@@ -8,7 +8,7 @@ local before=#Data.zones;Data.addPracticeZones(c.map);Data.addBlockZones(c.map)
 local bindings=0
 for _ in Data.blockBindings[c.map] do bindings+=1 end
 assert(bindings==manifest.originalZones,'Not every placed original zone is bound')
-assert(#Data.zones==before+18,'A placed original zone became a duplicate gameplay trigger')
+assert(#Data.zones==before+23,'A placed original zone became a duplicate gameplay trigger')
 local count=#Data.zones;Data.addPracticeZones(c.map);Data.addBlockZones(c.map)
 assert(#Data.zones==count,'Repeated setup duplicated map zones')
 local placed=assert(c.map:FindFirstChild('__KZ_BlockZones'))
@@ -36,6 +36,21 @@ for _,record in c.serde.decode('json',c.fs.readFile('scene/placements.json')) do
     end
 end
 assert(supported==17 and supported==manifest.verifiedBhopSupports)
+local route=assert(c.map:FindFirstChild('__KZ_RouteBlocks'),'Visible route blocks missing')
+assert(#route:GetChildren()==22 and manifest.visibleRouteBlocks==22)
+local routeTypes={}
+for _,part in route:GetChildren() do
+ assert(part:IsA('BasePart') and part.Anchored and part.CanCollide and part.Transparency==0,'Route block is invisible or has no collision')
+ local kind=part:GetAttribute('KZBlockType') or part:GetAttribute('KZSurfaceMechanic')
+ routeTypes[kind]=(routeTypes[kind] or 0)+1
+end
+assert(routeTypes.SingleBhop==9 and routeTypes.MultiBhop==8 and routeTypes.SequentialBhop==3 and routeTypes.Reset==2)
+for _,record in c.serde.decode('json',c.fs.readFile('scene/route_blocks.json')) do
+ local p=Data.worldPoint(c.map,record.supportFeet)+V(0,36*c.unit,0)
+ local hit=Core.traceGround(world,p,V(0,-2*c.unit,0),V(16,36,16)*c.unit,c.unit)
+ assert(not hit.startSolid and hit.fraction<1 and hit.normal.Y>=Core.Profile.WalkableNormal,'Visible route block is not standable: '..record.part)
+ assert(hit.brush.id.Parent==route,'Visible route block has no physical support: '..record.part)
+end
 local waterId='b8bf3397-ec7a-408c-9e94-2baa7f87f642'
 assert(c.map:GetAttribute(Data.waterLevelAttribute(waterId))==nil,'Water surface is still pinned to its floor')
 assert(c.map:FindFirstChild('V16_Collision_00964',true).CanCollide,'Water floor was removed')

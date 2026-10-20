@@ -295,6 +295,17 @@ def property_values(payload: bytes, count: int) -> list[bytes]:
         if len(raw) != count:
             raise ContainerError("incorrect boolean array size")
         return [bytes([v]) for v in raw]
+    if kind in (3, 18, 26, 27, 33):
+        width = {3: 4, 18: 4, 26: 3, 27: 8, 33: 8}[kind]
+        if len(raw) != width * count:
+            raise ContainerError("incorrect fixed-width property array size")
+        return [bytes(raw[row * count + i] for row in range(width)) for i in range(count)]
+    if kind == 25:
+        # Route surfaces preserve default physical properties. Do not guess
+        # layouts of custom/acoustic variants when verifying an added model.
+        if len(raw) != count or any(raw):
+            raise ContainerError("custom physical property patch unsupported")
+        return [b"\0"] * count
     if kind in (4, 14, 16):
         rotations = [b""] * count
         components = 1 if kind == 4 else 3
@@ -320,6 +331,15 @@ def encode_property_values(kind: int, values: list[bytes]) -> bytes:
     if kind == 2:
         if any(v not in (b"\0", b"\1") for v in values):
             raise ContainerError("invalid boolean patch")
+        return b"".join(values)
+    if kind in (3, 18, 26, 27, 33):
+        width = {3: 4, 18: 4, 26: 3, 27: 8, 33: 8}[kind]
+        if any(len(v) != width for v in values):
+            raise ContainerError("invalid fixed-width property patch size")
+        return bytes(v[row] for row in range(width) for v in values)
+    if kind == 25:
+        if any(v != b"\0" for v in values):
+            raise ContainerError("custom physical property patch unsupported")
         return b"".join(values)
     if kind in (4, 14, 16):
         prefix = b""
@@ -397,7 +417,7 @@ def replace_scene_properties(data: bytes, model: bytes, edits: dict[int, dict]) 
 
 
 def append_block_model(data: bytes, model: bytes, parent: int, root_name: str) -> bytes:
-    """Append a Folder/Part subtree without rewriting existing class groups."""
+    """Append a primitive block subtree without rewriting existing class groups."""
     before, added = validate(data), validate(model)
     if parent not in before["paths"] or added["scripts"]:
         raise ContainerError("invalid block model or destination")
@@ -405,8 +425,8 @@ def append_block_model(data: bytes, model: bytes, parent: int, root_name: str) -
     if root_path in before["paths"].values():
         raise ContainerError("block subtree already exists")
     old_classes, new_classes = declarations(data), declarations(model)
-    if any(name not in (b"Folder", b"Part") for name, _ in new_classes.values()):
-        raise ContainerError("block additions support only Folder and Part")
+    if any(name not in (b"Folder", b"Part", b"WedgePart", b"CornerWedgePart") for name, _ in new_classes.values()):
+        raise ContainerError("block additions support only Folder and primitive parts")
     if [p for p in added["paths"].values() if "/" not in p] != [root_name]:
         raise ContainerError("block model must contain exactly its declared root")
     ids = {old: max(before["paths"]) + 1 + i for i, old in enumerate(sorted(added["paths"]))}

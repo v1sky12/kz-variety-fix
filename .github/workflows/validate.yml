@@ -39,6 +39,9 @@ jobs:
       - run: /tmp/kz-lune/lune run tools/audit_scene.luau
       - run: /tmp/kz-lune/lune run tools/verify_scene.luau
       - run: /tmp/kz-lune/lune run tools/water_map_probe.luau
+      - run: /tmp/kz-lune/lune run tools/water_exit_probe.luau
+      - run: /tmp/kz-lune/lune run tools/water_surface_probe.luau
+      - run: /tmp/kz-lune/lune run tools/route_blocks_probe.luau
       - run: /tmp/kz-lune/lune run tools/conveyor_map_probe.luau
       - run: /tmp/kz-lune/lune run tools/surf_map_probe.luau
       - run: /tmp/kz-lune/lune run tools/teleport_audit.luau

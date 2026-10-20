@@ -26,7 +26,7 @@ local Config = {
     RefreshHz = 30,
     CSOriginRoblox = Vector3.zero, -- Set only when the import transform is known.
     ShowPracticeButtons = false, -- F6/F7/F8 still work.
-    ShowSpeedUnits = false,
+    ShowSpeedUnits = true,
     -- Exact names only. Add an OLD SPEED-ONLY ScreenGui here if it exists.
     -- Never add the name of a GUI containing unrelated controls.
     LegacySpeedGuiNames = {},
@@ -112,6 +112,11 @@ local anglesText = label(timerPanel, "Angles", "ANG: —   —   —", 8, 200, 4
     Config.Text, Config.NumberFont)
 local checkpointsText = label(timerPanel, "Checkpoints", "CP: —/— TPs: —", 8, 221, 404, 19, 16,
     Config.Text, Enum.Font.RobotoCondensed)
+label(canvas,"Build","KZ · V7.21",12,12,112,18,12,Config.Muted)
+local waterHint=label(canvas,"WaterHint","Space — всплыть · W + Space — выйти на край",8,38,440,22,14,Config.Accent)
+waterHint.Visible=false
+local movementNotice=label(canvas,"MovementNotice","Новое движение не запустилось. Причина ошибки — в консоли F9.",8,64,560,22,14,Color3.fromRGB(245,170,100))
+movementNotice.Visible=false
 local controls = new("Frame", timerPanel, {Name = "PracticeControls",
     Position = UDim2.fromOffset(8, 246), Size = UDim2.fromOffset(404, 21), BackgroundTransparency = 1,
     Visible = Config.ShowPracticeButtons})
@@ -249,6 +254,8 @@ end)
 if player.Character then task.spawn(setup, player.Character) end
 -- Read-only horizontal speed. No jump-stat block in the screenshot-style HUD.
 connect(RunService.Heartbeat, function()
+    waterHint.Visible=root~=nil and (numericAttribute(root,"KZWaterLevel") or 0)>0
+    movementNotice.Visible=player:GetAttribute("KZBrushFallbackReason")~=nil
     if not root or not root.Parent or not humanoid then speed = 0; return end
     if humanoid.Health <= 0 then
         if manualState == "Running" then manualState, manualElapsed = "Aborted", os.clock() - manualStart end

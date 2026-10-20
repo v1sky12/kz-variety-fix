@@ -320,5 +320,19 @@ test('server and motor reject the same false ground bevel beside a steep ramp',f
     assert(p:GetAttribute('KZServerGrounded'),'server removed a legitimate narrow floor')
     groundWorld=nil;r.CFrame=savedFrame;s.motion=savedMotion;s.previousFeet=nil
 end)
+test('blocks command reaches the main route line and resets the preceding attempt',function()
+    local original=serverMap.GetAttribute
+    serverMap.GetAttribute=function(self,name)
+        if name=='KZRouteBlocksOrigin' then return Vector3.new(360,-1064,-270) end
+        return original(self,name)
+    end
+    local visitor,root=makePlayer(33);local state=server.states[visitor]
+    state.bhopVisited.previous=true;state.runState='Running';state.start=serverClock-1
+    server.action(visitor,'RouteBlocks')
+    local source=Data.feetSource(serverMap,root,{HipHeight=35})
+    near(source.X,360);near(source.Y,-1064);near(source.Z,-270+.015)
+    assert(state.runState=='Ready' and next(state.bhopVisited)==nil)
+    serverMap.GetAttribute=original
+end)
 print(string.format('NETWORK RESULT %d passed, %d failed',passed,failed))
 assert(failed==0,'network regressions failed')

@@ -402,12 +402,13 @@ local function action(player, name, payload)
             if not cp.crouched then setCrouch(player, s, false) end
         end
         attr(player, "CheckpointIndex", s.index)
-    elseif name == "Practice" then
-        local origin=map:GetAttribute("KZPracticeOrigin")
+    elseif name == "Practice" or name=="RouteBlocks" then
+        local origin=map:GetAttribute(name=="RouteBlocks" and "KZRouteBlocksOrigin" or "KZPracticeOrigin")
         if origin then
             stopRun(player,s,"Ready");resetCheckpoints(player,s)
             moveTo(player,s,{origin.X,origin.Y,origin.Z},nil,true,false)
-            message(player,"BHOP practice: green Multi, orange Single, purple Sequential")
+            message(player,name=="RouteBlocks" and "Main route blocks: green Multi, orange Single, purple Sequential; blue pads reset the sequence"
+                or "BHOP practice: green Multi, orange Single, purple Sequential")
         end
     elseif name == "Use" then
         for _, e in ipairs(Data.buttons) do
@@ -498,7 +499,7 @@ for _, player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
 connect(Net.OnServerEvent, function(player, name, payload)
     if type(name) == "string" then action(player, name, payload) end
 end)
-local commands = {cp = "Checkpoint", tp = "Teleport", r = "Restart", prev = "PreviousCP", next = "NextCP", practice = "Practice"}
+local commands = {cp = "Checkpoint", tp = "Teleport", r = "Restart", prev = "PreviousCP", next = "NextCP", practice = "Practice",blocks="RouteBlocks"}
 for alias, name in pairs(commands) do
     local command = Instance.new("TextChatCommand"); command.Name = "KZClassic_" .. alias
     command.PrimaryAlias = "/" .. alias; command.SecondaryAlias = "!" .. alias
@@ -686,4 +687,4 @@ connect(script.Destroying, function()
         if command:IsA("TextChatCommand") and command.Name:sub(1, 10) == "KZClassic_" then command:Destroy() end
     end
 end)
-print("KZ Classic V7.20 ready: bound Source zones, shared ground checks, start-touch boosters and conveyor compatibility")
+print("KZ Classic V7.21 ready: visible route blocks, surface bank exits and shared map rules")

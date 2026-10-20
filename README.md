@@ -1,8 +1,15 @@
-# kz_variety_fix — Roblox PC KZ, V7.20
+# kz_variety_fix — Roblox PC KZ, V7.21
 
 Обновление движения, воды и механик карты. Цель — поведение, близкое к открытому CKZ; точное совпадение с закрытым движком CS2 или настройками CYBERSHOKE не заявляется.
 
-[Скачать ZIP](kz_variety_fix_updated.zip?raw=1) · [Открытие и откат](INSTALL_KZ_VARIETY_FIX.md) · [Что изменено на карте](SCENE_CHANGES_RU.md)
+[Скачать V7.21](kz_variety_fix_V7_21.zip?raw=1) · [Открытие и откат](INSTALL_KZ_VARIETY_FIX.md) · [Что изменено на карте](SCENE_CHANGES_RU.md)
+
+## Исправления V7.21 после проверки в игре
+
+- **Выход из воды.** Воспроизведено застревание у борта на уровне поверхности при Space + W. Вместо импульса 225 и таймера 0.25 s используются 256 units/s и окно 2 s из открытого Source SDK. Толчок к борту повторяется после касания стены; перед выходом проверяются полный hull, свободное место и опора. После падения обратно в воду Space снова поднимает игрока.
+- **Видимые блоки на маршруте.** `__KZ_RouteBlocks` содержит 9 оранжевых Single, 8 зелёных Multi, 3 фиолетовых Sequential и 2 синих Reset. Single/Multi заменяют соответствующие коллизионные поверхности; original-триггеры продолжают задавать правила. Цепочка Sequential поднята над большой Multi-платформой внутри карты, Source X 360…904, Y −1064, Z −272. Это добавленная линия, не восстановленный оригинальный Sequential-триггер.
+- **Быстрая проверка.** `/blocks` переносит на вход этой линии и прекращает текущую попытку. `/practice` по-прежнему ведёт в отдельную тренировку. В HUD указана V7.21; при фактическом отказе основного мотора появляется сообщение с указанием F9. Экранных кнопок нет.
+- **Более строгие проверки.** Проверяются подъём от нижней доступной точки до поверхности, реальные открытые борта и четыре полных прыжка по новой линии. Прежний тест, который принимал небольшой подъём за успешное всплытие, для этого больше не используется.
 
 ## Исправления V7.20
 
@@ -16,7 +23,7 @@
 
 Стандартная камера и PC-управление сохранены, экранные кнопки не добавлены. HUD получает виртуальную скорость в CS units/s. V5, `KZBrush_V1` и резервные скрипты сохранены; изменения старых свойств карты перечислены в `scene/manifest.json`.
 
-В Play у HumanoidRootPart основного мотора должен быть `KZMovementBuild=2026-10-20-r1`. Ожидаются `KZBrushCount=16064` и `KZBrushMeshQueryCount=20`.
+В Play у HumanoidRootPart основного мотора должен быть `KZMovementBuild=2026-10-20-r2`. Ожидаются `KZBrushCount=16069` и `KZBrushMeshQueryCount=20`.
 
 ## Проверки
 
@@ -43,6 +50,9 @@ python -B -m unittest discover -s tests -p 'test_*.py' -v
 /tmp/kz-lune/lune run tools/audit_scene.luau
 /tmp/kz-lune/lune run tools/verify_scene.luau
 /tmp/kz-lune/lune run tools/water_map_probe.luau
+/tmp/kz-lune/lune run tools/water_surface_probe.luau
+/tmp/kz-lune/lune run tools/water_exit_probe.luau
+/tmp/kz-lune/lune run tools/route_blocks_probe.luau
 /tmp/kz-lune/lune run tools/conveyor_map_probe.luau
 python -B build_place.py --luau-compile /path/to/luau-compile --rojo /path/to/rojo
 python -B build_place.py --check --luau-compile /path/to/luau-compile --rojo /path/to/rojo

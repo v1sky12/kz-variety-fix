@@ -316,6 +316,51 @@ test('waist-deep water exits a real low ledge through hull sweeps',function()
     end
     assert(m.p.X>4 and m:feet().Y>=29.99,'failed to leave water at the ledge')
 end)
+test('holding Space and forward leaves a basin at its actual water surface',function()
+    local saved=Data.zones
+    Data.zones={{id='basin',class='func_water',triggerType=0,properties={},bounds={{-200,-200,-100},{200,200,0}}}}
+    local w=Collision.world({cube(-200,-110,-200,200,-100,200),cube(32,-100,-100,200,0,100)},64)
+    local m=Motor.new(w,Core,V(0,-4,0),1)
+    local climbed=false
+    for _=1,256 do
+        local zone=Data.modifiers(map(0),Data.sourcePoint(map(0),m:feet()),m.height)
+        local _,stuck=m:tick({wish=V(1,0,0),swim=V(1,0,0),jump=true},1/128,zone)
+        assert(not stuck,'basin exit entered the bank')
+        if m:feet().Y>=-.01 and m.p.X>16 then climbed=true;break end
+    end
+    Data.zones=saved
+    assert(climbed,'swimmer cannot climb the bank at the actual surface')
+end)
+test('water exit retains its forward push after a real collision with the bank',function()
+    local saved=Data.zones
+    Data.zones={{id='basin',class='func_water',triggerType=0,properties={},bounds={{-200,-200,-100},{200,200,0}}}}
+    local w=Collision.world({cube(-200,-110,-200,200,-100,200),cube(32,-100,-100,200,0,100)},64)
+    local m=Motor.new(w,Core,V(15.999,16,0),1)
+    m.waterJumpUntil=2;m.waterJumpVelocity=V(50,0,0);m.v=V(0,220,0)
+    local best=0
+    for _=1,64 do
+        local zone=Data.modifiers(map(0),Data.sourcePoint(map(0),m:feet()),72)
+        m:tick({wish=V(1,0,0),swim=V(1,0,0),jump=true},1/128,zone)
+        best=math.max(best,m.p.X)
+    end
+    Data.zones=saved
+    assert(best>16,'the first wall collision permanently removed the exit push')
+end)
+test('water exit does not launch into a low ceiling or a high wall',function()
+    for _,ceiling in ipairs({false,true}) do
+        local brushes={cube(-200,-110,-200,200,-100,200),cube(32,-100,-100,200,ceiling and 0 or 80,100)}
+        if ceiling then brushes[#brushes+1]=cube(-200,40,-200,200,50,200) end
+        local m=Motor.new(Collision.world(brushes,64),Core,V(15,-.1,0),1)
+        m:tick({wish=V(1,0,0),swim=V(1,0,0),jump=true},1/128,{water=true,waterLevel=2})
+        assert(m.waterJumpUntil==nil,'water exit ignored the blocked landing')
+    end
+end)
+test('falling back under water cancels an exit and Space can raise the swimmer again',function()
+    local m=Motor.new(floorWorld(),Core,V(0,200,0),1)
+    m.waterJumpUntil=2;m.waterJumpVelocity=V(50,0,0);m.v=V(0,-20,0)
+    m:tick(input(true),1/128,{water=true,waterLevel=3})
+    assert(m.waterJumpUntil==nil and m.waterJumpVelocity==nil and m.v.Y>0)
+end)
 test('steep surf correction obeys maximum velocity without pointing into ramp',function()
     local n=V(0,.001,math.sqrt(1-.001*.001))
     local w=floorWorld();w.trace=function(_,p,d) return {fraction=1,position=p+d} end

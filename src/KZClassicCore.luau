@@ -12,6 +12,7 @@ Core.Profile = {
     PerfWindow = 0.02, BhopMultiplier = 51.5, BhopLandingPenalty = 75,
     GroundProbe = 2, StepHeight = 18, WalkableNormal = Vector3.new(0,.7,0).Y,
     WaterSpeed = 225, WaterAccel = 10, WaterFriction = 1, WaterSink = 60, WaterRise = 100,
+    WaterJumpImpulse = 256, WaterJumpForward = 50, WaterJumpDuration = 2,
     LadderAngle = -.707, LadderDampen = 1, LadderSpeed = 200, LadderDuckSpeed = 68, LadderJump = 270,
 }
 local P = Core.Profile

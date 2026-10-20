@@ -29,7 +29,8 @@ local function restore()
     if s.r.Parent then
         for _,name in ipairs({'KZMovementBackend','KZMovementBuild','KZBrushCount','KZBrushMeshQueryCount',
             'KZSurfing','KZSurfNormal','KZSurfPart','KZMapSlide','KZGroundCorrections','KZSeamRecoveries',
-            'KZConveyorSpeedUnits','KZVirtualHullHeightUnits','KZBoundSourceZoneCount','KZMovementProfile','KZLadderId'}) do
+            'KZConveyorSpeedUnits','KZVirtualHullHeightUnits','KZBoundSourceZoneCount','KZMovementProfile','KZLadderId',
+            'KZWaterLevel','KZWaterExiting'}) do
             s.r:SetAttribute(name,nil)
         end
     end
@@ -141,7 +142,7 @@ local function resetWarp(s,velocity,reason)
     local m=s.motor
     m.p=s.r.Position+Vector3.new(0,m.height/2*s.unit-s.standing,0)
     m.v=velocity or Vector3.zero;m.flight=nil;m.dropY=nil;m.weirdAt=nil;m.lastValid=false;m.lastKind=nil
-    m.waterJumpUntil=nil;m.baseVelocity=Vector3.zero;m.pre=Core.newPre();m.lastLand=-math.huge;m.grounded=false;m.landingSpeed=nil;m.landingVelocity=nil;m.water=false
+    m.waterJumpUntil=nil;m.waterJumpVelocity=nil;m.baseVelocity=Vector3.zero;m.pre=Core.newPre();m.lastLand=-math.huge;m.grounded=false;m.landingSpeed=nil;m.landingVelocity=nil;m.water=false
     m.surfNormal=nil;m.surfPart=nil;m.groundNormal=nil;m.contactPlanes=nil;m.groundAge=math.huge;s.pushes={}
     s.resetCount=(s.resetCount or 0)+1
     s.r:SetAttribute('KZBrushResetCount',s.resetCount)
@@ -172,7 +173,7 @@ local function ladderStep(s,input,dt,zone)
             if not m.grounded then m:begin('LAJ',y);m.flight.start=takeoff;m.flight.time=takeoffTime end
             return true,true
         elseif attached or into>.15 then
-            s.ladder=ladder;m:invalidate('Ladder');m.flight=nil;m.grounded=false;m.waterJumpUntil=nil;m.surfNormal=nil;m.surfPart=nil
+            s.ladder=ladder;m:invalidate('Ladder');m.flight=nil;m.grounded=false;m.waterJumpUntil=nil;m.waterJumpVelocity=nil;m.surfNormal=nil;m.surfPart=nil
             m.contactPlanes=nil;m.groundNormal=nil;m.landingVelocity=nil;m.landingSpeed=nil
             m.baseVelocity=Vector3.zero
             m.time=m.time+dt;m.v=Core.ladderVelocity(motion*(m.duck and Core.Profile.LadderDuckSpeed or Core.Profile.LadderSpeed),normal)*s.unit
@@ -206,7 +207,7 @@ local function ladderStep(s,input,dt,zone)
 end
 local function telemetry(s)
     local m,r=s.motor,s.r
-    r:SetAttribute('KZMovementBuild','2026-10-20-r1')
+    r:SetAttribute('KZMovementBuild','2026-10-20-r2')
     r:SetAttribute('KZSeamRecoveries',m.recoveries or 0)
     r:SetAttribute('KZGroundCorrections',m.groundCorrections or 0)
     r:SetAttribute('KZSurfing',s.ladder==nil and m.surfNormal~=nil)
@@ -215,6 +216,8 @@ local function telemetry(s)
     r:SetAttribute('KZMapSlide',s.zoneSlide==true)
     r:SetAttribute('KZSpeedUnits',flat(m.v).Magnitude/s.unit)
     r:SetAttribute('KZInWater',m.water==true)
+    r:SetAttribute('KZWaterLevel',s.zoneWaterLevel or 0)
+    r:SetAttribute('KZWaterExiting',m.waterJumpUntil~=nil and m.time<m.waterJumpUntil)
     r:SetAttribute('KZWaterVerticalUnits',m.water and m.v.Y/s.unit or 0)
     r:SetAttribute('KZConveyorSpeedUnits',(m.baseVelocity or Vector3.zero).Magnitude/s.unit)
     r:SetAttribute('KZStudsPerCSUnit',s.unit);r:SetAttribute('KZMotorUnitsScale',s.unit)
@@ -297,6 +300,7 @@ connect(RunService.PostSimulation,function(dt)
         while s.accumulator+1e-10>=1/128 and ticks<32 do
             local zone=Data.modifiers(s.map,Data.sourcePoint(s.map,s.motor:feet()),s.motor.height,s.mapState)
             s.zoneSlide=zone.slide==true
+            s.zoneWaterLevel=zone.waterLevel
             if #s.pushes>0 then
                 s.motor.v=Data.applyPushes(s.map,s.motor.v,s.pushes)
                 s.motor:invalidate('Push');s.pushes={}

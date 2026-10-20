@@ -3556,13 +3556,19 @@
     "destination": "ch16",
     "id": "f1c229b4-46f9-4883-83de-925282f4ac49",
     "kind": 11,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_02746",
-    "supportFeet": [
+    "originalSupportFeet": [
       3756,
       -3812.000244140625,
       -399.9858703613281
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_02746",
+    "supportFeet": [
+      3756,
+      -3812.000244140625,
+      -399.4930456546696
+    ],
     "type": "MultiBhop",
+    "visibleBlock": "MultiBhop_f1c229b4",
     "zonePart": "178_MultiBhop_f1c229b4"
   },
   {
@@ -3762,13 +3768,19 @@
     "destination": "ch8",
     "id": "d263703e-bdad-4262-8f18-39b89711f740",
     "kind": 11,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04894",
-    "supportFeet": [
+    "originalSupportFeet": [
       3611.999755859375,
       -1859.9998779296875,
       -188.89193725585938
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04894",
+    "supportFeet": [
+      3611.999755859375,
+      -1859.9998779296875,
+      -188.39911254920085
+    ],
     "type": "MultiBhop",
+    "visibleBlock": "MultiBhop_d263703e",
     "zonePart": "188_MultiBhop_d263703e"
   },
   {
@@ -3828,13 +3840,19 @@
     "destination": "ch10",
     "id": "1c3a1891-fcf2-4d0b-ad95-7bf41c225e05",
     "kind": 11,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04141",
-    "supportFeet": [
+    "originalSupportFeet": [
       3764,
       -3104,
       -23.98614501953125
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04141",
+    "supportFeet": [
+      3764,
+      -3104,
+      -23.493320312872715
+    ],
     "type": "MultiBhop",
+    "visibleBlock": "MultiBhop_1c3a1891",
     "zonePart": "191_MultiBhop_1c3a1891"
   },
   {
@@ -3854,13 +3872,19 @@
     "destination": "ch10",
     "id": "fadc0971-50ac-456d-bea3-6f0d663cc530",
     "kind": 11,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04146",
-    "supportFeet": [
+    "originalSupportFeet": [
       4000,
       -3232,
       -23.98614501953125
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04146",
+    "supportFeet": [
+      4000,
+      -3232,
+      -23.493320312872715
+    ],
     "type": "MultiBhop",
+    "visibleBlock": "MultiBhop_fadc0971",
     "zonePart": "192_MultiBhop_fadc0971"
   },
   {
@@ -3880,13 +3904,19 @@
     "destination": "ch10",
     "id": "085e57e9-0877-4c51-9170-f15b36ce5945",
     "kind": 11,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04145",
-    "supportFeet": [
+    "originalSupportFeet": [
       4216,
       -3336,
       -23.98614501953125
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04145",
+    "supportFeet": [
+      4216,
+      -3336,
+      -23.493320312872715
+    ],
     "type": "MultiBhop",
+    "visibleBlock": "MultiBhop_085e57e9",
     "zonePart": "193_MultiBhop_085e57e9"
   },
   {
@@ -3906,13 +3936,19 @@
     "destination": "ch10",
     "id": "e284b0f2-ad73-415a-9eb3-44a7b188446a",
     "kind": 11,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04147",
-    "supportFeet": [
+    "originalSupportFeet": [
       4000,
       -3432,
       -23.98614501953125
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04147",
+    "supportFeet": [
+      4000,
+      -3432,
+      -23.493320312872715
+    ],
     "type": "MultiBhop",
+    "visibleBlock": "MultiBhop_e284b0f2",
     "zonePart": "194_MultiBhop_e284b0f2"
   },
   {
@@ -4132,13 +4168,19 @@
     "destination": "tp_single1",
     "id": "64ac8d92-7cbe-4ccf-bd2a-171009441e6c",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_03193",
-    "supportFeet": [
+    "originalSupportFeet": [
       2768,
       -1296,
       -615.9859619140625
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_03193",
+    "supportFeet": [
+      2768,
+      -1296,
+      -615.493137207404
+    ],
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_64ac8d92",
     "zonePart": "205_SingleBhop_64ac8d92"
   },
   {
@@ -4158,13 +4200,19 @@
     "destination": "tp_single1",
     "id": "d051ca1f-94df-4106-97a1-41991965bb18",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04984",
-    "supportFeet": [
+    "originalSupportFeet": [
       2680,
       -1408,
       -605.9860229492188
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04984",
+    "supportFeet": [
+      2680,
+      -1408,
+      -605.4931982425602
+    ],
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_d051ca1f",
     "zonePart": "206_SingleBhop_d051ca1f"
   },
   {
@@ -4184,13 +4232,19 @@
     "destination": "tp_single1",
     "id": "2612f654-8046-4f86-9fa7-b1bee57838de",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00975",
-    "supportFeet": [
+    "originalSupportFeet": [
       2561,
       -1319,
       -575.986083984375
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00975",
+    "supportFeet": [
+      2561,
+      -1319,
+      -575.4932592777164
+    ],
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_2612f654",
     "zonePart": "207_SingleBhop_2612f654"
   },
   {
@@ -4210,13 +4264,19 @@
     "destination": "tp_single1",
     "id": "09c4e818-63a7-453b-8ae1-240c29089e62",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04983",
-    "supportFeet": [
+    "originalSupportFeet": [
       2476,
       -1430,
       -546.9859008789062
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04983",
+    "supportFeet": [
+      2476,
+      -1430,
+      -546.4930761722477
+    ],
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_09c4e818",
     "zonePart": "208_SingleBhop_09c4e818"
   },
   {
@@ -4872,13 +4932,19 @@
     "destination": "ch2",
     "id": "2124631d-2575-4698-ad5f-5b692d80463e",
     "kind": 11,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00781",
-    "supportFeet": [
+    "originalSupportFeet": [
       3600,
       -760,
       -119.98615264892578
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_00781",
+    "supportFeet": [
+      3600,
+      -760,
+      -119.49332794226724
+    ],
     "type": "MultiBhop",
+    "visibleBlock": "MultiBhop_2124631d",
     "zonePart": "241_MultiBhop_2124631d"
   },
   {
@@ -4898,13 +4964,19 @@
     "destination": "tp_single1",
     "id": "e912e716-ee81-433c-8ccb-69bd55e07f3f",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04985",
-    "supportFeet": [
+    "originalSupportFeet": [
       2704,
       -1144,
       -633.986083984375
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04985",
+    "supportFeet": [
+      2704,
+      -1144,
+      -633.4932592777164
+    ],
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_e912e716",
     "zonePart": "242_SingleBhop_e912e716"
   },
   {
@@ -4924,13 +4996,19 @@
     "destination": "tp_single1",
     "id": "f2ec0fff-dd7d-4387-ba3e-eb8df512c4e8",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04987",
-    "supportFeet": [
+    "originalSupportFeet": [
       2544,
       -1128,
       -651.9859619140625
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04987",
+    "supportFeet": [
+      2544,
+      -1128,
+      -651.493137207404
+    ],
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_f2ec0fff",
     "zonePart": "243_SingleBhop_f2ec0fff"
   },
   {
@@ -4950,13 +5028,19 @@
     "destination": "tp_single1",
     "id": "b52d39e1-3148-4954-a994-6f8a93f20fda",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04988",
-    "supportFeet": [
+    "originalSupportFeet": [
       2424,
       -1208,
       -678.986083984375
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_04988",
+    "supportFeet": [
+      2424,
+      -1208,
+      -678.4932592777164
+    ],
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_b52d39e1",
     "zonePart": "244_SingleBhop_b52d39e1"
   },
   {
@@ -4976,13 +5060,19 @@
     "destination": "ch23",
     "id": "63f4b887-8995-4e93-a8b0-1826ba0058c1",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_05002",
-    "supportFeet": [
+    "originalSupportFeet": [
       2060,
       -2732,
       -735.986083984375
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_05002",
+    "supportFeet": [
+      2060,
+      -2732,
+      -735.4932592777164
+    ],
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_63f4b887",
     "zonePart": "245_SingleBhop_63f4b887"
   },
   {
@@ -5338,13 +5428,19 @@
     "destination": "chbet",
     "id": "ee208aed-14c0-4cba-aaad-d248774814b5",
     "kind": 11,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_01003",
-    "supportFeet": [
+    "originalSupportFeet": [
       628,
       -1064,
       -303.98583984375
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_01003",
+    "supportFeet": [
+      628,
+      -1180,
+      -303.49301513709145
+    ],
     "type": "MultiBhop",
+    "visibleBlock": "MultiBhop_ee208aed",
     "zonePart": "263_MultiBhop_ee208aed"
   },
   {
@@ -5424,14 +5520,20 @@
     "destination": "ch85",
     "id": "b5fa7457-631a-4fed-b09d-34386d634bed",
     "kind": 12,
-    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_08823",
-    "supportFeet": [
+    "originalSupportFeet": [
       256.0000305175781,
       -3540,
       -976.0001220703125
     ],
+    "support": "Workspace/KZ_Variety_CS2_ROBLOX_V22/CS2_V12_021_005/__V17_Collision/V16_Collision_08823",
+    "supportFeet": [
+      256.0000305175781,
+      -3540,
+      -975.507297363654
+    ],
     "supportKind": "partial_hull_overlap",
     "type": "SingleBhop",
+    "visibleBlock": "SingleBhop_b5fa7457",
     "zonePart": "267_SingleBhop_b5fa7457"
   }
 ]

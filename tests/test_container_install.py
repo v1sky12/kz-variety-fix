@@ -57,8 +57,8 @@ class ContainerAndInstallerTests(unittest.TestCase):
 
     def test_actual_place_structure_is_complete(self):
         self.assertEqual(self.report["scripts"], 429)
-        self.assertEqual(self.report["instances"], 135949)
-        self.assertEqual(self.report["classes"], 97)
+        self.assertEqual(self.report["instances"], 135972)
+        self.assertEqual(self.report["classes"], 100)
         self.assertEqual(self.report["paths"][135676], "ReplicatedStorage/KZClassic/KZBlockController")
 
     def test_new_module_preserves_all_existing_property_chunks_and_paths(self):
@@ -122,6 +122,12 @@ class ContainerAndInstallerTests(unittest.TestCase):
         for kind, values in [
             (1, [b"", "русский".encode(), b"\0\xff"]),
             (2, [b"\0", b"\1", b"\0"]),
+            (3, [bytes(range(i, i + 4)) for i in (0, 10, 20)]),
+            (18, [bytes(range(i, i + 4)) for i in (0, 10, 20)]),
+            (25, [b"\0", b"\0", b"\0"]),
+            (26, [bytes(range(i, i + 3)) for i in (0, 10, 20)]),
+            (27, [bytes(range(i, i + 8)) for i in (0, 10, 20)]),
+            (33, [bytes(range(i, i + 8)) for i in (0, 10, 20)]),
             (4, [bytes(range(i, i + 4)) for i in (0, 10, 20)]),
             (14, [bytes(range(i, i + 12)) for i in (0, 10, 20)]),
             (16, [b"\x02" + bytes(range(12)), b"\0" + bytes(range(36)) + bytes(range(12, 24)), b"\x03" + bytes(range(24, 36))]),
